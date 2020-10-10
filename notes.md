@@ -445,3 +445,19 @@ To write a sequential computer program to implement iterative policy evaluation 
 given by (4.5) you would have to use two arrays, one for the old values, $v_k(s)$, and one for the new values, $v_{k+1}(s)$.
 
 ![](images/iter-pol-eval.png)
+
+## 4.2 Policy Improvement
+
+Suppose we have determined the value function $v_\pi$ for an arbitrary deterministic policy $\pi$. We know how good it is to follow the current policy from s ($v_\pi(s)$), but would it be better or worse to change to a new policy?
+
+If $q_\pi(s,a)$ is greater than $v_\pi(s)$—that
+is, if it is better to select $a$ once in $s$ and thereafter follow $\pi$ than it would be to follow $\pi$ all the time—then one would expect it to be better still to select $a$ every time $s$ is
+encountered, and that the new policy would in fact be a better one overall.
+
+**Policy improvement theorem:** see page 78
+
+**Policy improvement:** the process of making a new policy that improves on an original policy, by making it greedy with respect to the value function of the original policy 
+
+![](images/fig-4.1.png)
+
+The original policy, $\pi$, is the equiprobable random policy, and the new policy, $\pi'$, is greedy with respect to $v_\pi$. The value function $v_\pi$ is shown in the bottom-left diagram and the set of possible $\pi'$ is shown in the bottom-right diagram. Any apportionment of probability among actions in states with multiple arrows in the $\pi'$ diagram is permitted. By inspection, the state values of the new policy $\pi'$ can be seen to be either -1, -2, or -3.
