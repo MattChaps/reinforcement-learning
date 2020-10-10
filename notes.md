@@ -484,3 +484,8 @@ $$
 
 ![](images/val-iter-algo.png)
 
+## 4.5 Asynchronous Dynamic Programming
+
+DP methods involve operations over the entire state set of the MDP. If the state set is very large, like in Backgammon, then each set is expensive.
+
+_Asynchronous_ DP algorithms update the value of states in any order whatsoever, using whatever values of other states happen to be available.
