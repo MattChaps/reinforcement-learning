@@ -470,3 +470,17 @@ where $\xrightarrow{E}$ denotes a policy _evaluation_ and $\xrightarrow{I}$ deno
 
 ![](images/pol-iter-algo.png)
 
+## 4.4 Value Iteration
+
+$$
+\begin{aligned}
+  v_{k+1}(s)
+  & \doteq \max_a \mathbb{E} \left[ R_{t+1} + \gamma v_k(S_{t+1}) \middle| S_t = s, A_t = a \right] 
+  \\
+  & = \max_a \sum_{s', r} p \left( s', r \middle| s, a \right) \left[ r + \gamma v_k(s') \right], 
+  \quad \text{ for all $s \in \mathcal{S}$}
+\end{aligned}
+$$
+
+![](images/val-iter-algo.png)
+
