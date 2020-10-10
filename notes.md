@@ -461,3 +461,12 @@ encountered, and that the new policy would in fact be a better one overall.
 ![](images/fig-4.1.png)
 
 The original policy, $\pi$, is the equiprobable random policy, and the new policy, $\pi'$, is greedy with respect to $v_\pi$. The value function $v_\pi$ is shown in the bottom-left diagram and the set of possible $\pi'$ is shown in the bottom-right diagram. Any apportionment of probability among actions in states with multiple arrows in the $\pi'$ diagram is permitted. By inspection, the state values of the new policy $\pi'$ can be seen to be either -1, -2, or -3.
+
+## 4.3 Policy Iteration
+
+![](images/pol-iter.png)
+
+where $\xrightarrow{E}$ denotes a policy _evaluation_ and $\xrightarrow{I}$ denotes a policy _improvement_.
+
+![](images/pol-iter-algo.png)
+
