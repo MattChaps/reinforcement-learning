@@ -489,3 +489,15 @@ $$
 DP methods involve operations over the entire state set of the MDP. If the state set is very large, like in Backgammon, then each set is expensive.
 
 _Asynchronous_ DP algorithms update the value of states in any order whatsoever, using whatever values of other states happen to be available.
+
+## 8.9 Heuristic Search 
+
+For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
+
+In conventional heuristic search, no effort is made to save the backed-up values by changing the approximate value function. Heuristic search can be viewed as an extension of the idea of a greedy policy beyond a single step.
+
+The point of searching deeper than one step is to obtain better action selections. The deeper the search, the more computation is required, usually resulting in a slower response time.
+
+> "[Tesauro's TD-Gammon] used TD learning to learn an afterstate
+value function through many games of self-play, using a form of heuristic search to make its moves. As a model, TD-Gammon used a priori knowledge of the probabilities of dice rolls and the assumption that the opponent always selected the actions that TD-Gammon rated as best for it. Tesauro found that the deeper the heuristic search, the better the
+moves made by TD-Gammon, but the longer it took to make each move.
