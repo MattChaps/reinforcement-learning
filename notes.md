@@ -504,6 +504,30 @@ Ways of solving the reinforcement learning problem based on averaging sample ret
 
 Because all the action selections are undergoing learning, the problem becomes nonstationary from the point of view of the earlier state.
 
+## 5.1 Monte Carlo Prediction
+
+Consider Monte Carlo methods for learning the state-value function for a given policy. To estimate the value of a state from experience is to average the returns observed after visits to that state. As more returns are observed, the average should converge to the expected value.
+
+**Visit to $s$:** each occurrence of state $s$ in an episode.
+
+**First-visit MC method:** estimates $v_\pi(s)$ as the average of the returns following first visits to s.
+
+![](images/first-visit-mc.png)
+
+**Every-visit MC method:** averages the returns following all visits to $s$.
+
+Both methods converge to $v_\pi(s)$ as the number of visits (or first visits) to $s$ goes to infinity.
+
+For MC estimation, the root of a backup diagram is a state node, and below it is the entire trajectory of transitions along a particular single episode, ending at the terminal state. Whereas the DP diagram shows all possible transitions, the Monte Carlo diagram shows only those sampled on the one episode. Whereas the DP diagram includes only one-step transitions,the Monte Carlo diagram goes all the way to the end of the episode.
+
+Estimates for each state are independent.
+
+**The three advantages of Monte Carlo methods over DP methods:**
+
+- The computational expense of estimating the value of a single state is independent of the number of states.
+- The ability to learn from actual experience
+- The ability to learn from simulated experience
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
