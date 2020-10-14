@@ -490,6 +490,12 @@ DP methods involve operations over the entire state set of the MDP. If the state
 
 _Asynchronous_ DP algorithms update the value of states in any order whatsoever, using whatever values of other states happen to be available.
 
+## 4.6 Generalised Policy Iteration
+
+Policy iteration consists of making the value function consistent with the current policy (policy evaluation), and the other making the policy greedy with respect to the current value function (policy improvement). The result is convergence to the optimal value function and an optimal policy.
+
+**Generalised policy iteration (GPI)** is letting policy-evaluation and policy-improvement processes interact, independent of the granularity and other details of the two processes. The policy always improves with respect to the value function and the value function is always driven toward the value function for the policy. Both processes stabilise only when a policy has been found that is greedy with respect to its own evaluation function. This implies that the Bellman optimality equation (4.1) holds, and that the policy and value function are optimal
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
