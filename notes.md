@@ -496,6 +496,14 @@ Policy iteration consists of making the value function consistent with the curre
 
 **Generalised policy iteration (GPI)** is letting policy-evaluation and policy-improvement processes interact, independent of the granularity and other details of the two processes. The policy always improves with respect to the value function and the value function is always driven toward the value function for the policy. Both processes stabilise only when a policy has been found that is greedy with respect to its own evaluation function. This implies that the Bellman optimality equation (4.1) holds, and that the policy and value function are optimal
 
+# 5 Monte Carlo Methods
+
+No assumption of complete knowledge of the environment. Monte Carlo methods require only *experience*.
+
+Ways of solving the reinforcement learning problem based on averaging sample returns. Assume experience is divided into episodes, and that all episodes eventually terminate no matter what actions are selected. Only on the completion of an episode are value estimates and policies changed.
+
+Because all the action selections are undergoing learning, the problem becomes nonstationary from the point of view of the earlier state.
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
