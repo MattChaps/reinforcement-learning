@@ -588,6 +588,56 @@ Improvement is assured by the policy improvement theorem.
 
 Policy iteration works for $\epsilon$-soft policies.
 
+## 5.5 Off-policy Prediction via Importance Sampling
+
+All learning control methods face a dilemma: they seek to learn action values conditional on subsequent *optimal* behaviour, but they need to behave non-optimally in order to explore all actions (to *find* the optimal actions). The on-policy approach is a compromise $mdash; it learns action values not for the optimal policy, but for a near-optimal policy that still explores. A more straightforward approach is to use two policies, one that is learned about and that becomes the optimal policy, and one that is more exploratory and is used to generate behaviour. 
+
+**Target policy:** the policy being learned
+
+**Behaviour policy:** the policy used to generate behaviour
+
+Learning is from data “off” the target policy, and the overall process is termed *off-policy* learning.
+
+Suppose we wish to estimate $v_\pi$ or $q_\pi$, but all we have are episodes following another policy $b$, where $b \neq \pi$. In this case, $\pi$ is the target policy, $b$ is the behaviour policy, and both policies are considered fixed adn given.
+
+In order to use episodes from $b$ to estimate values for $\pi$, we require that every action taken under $\pi$ is also taken, at least occasionally, under $b$. That is, we require and assume coverage.
+
+**Coverage:** $\pi(a|s) > 0$ implies $b(a|s) > 0$
+
+Off-policy methods utilise *importance sampling*
+
+**Importance sampling:** technique for estimating expected values under one distribution given samples from another.
+
+Apply importance sampling to off-policy learning by weighting returns according to the relative probability of their trajectories occurring under the target and behaviour policies, called the *importance-sampling ratio*. Given a starting state $S_t$, the probabiltiy of the subsequent state-action trajectory, $A_t, S_{t+1}, A_{t+1}, \dots, S_T$, occurring under any policy $\pi$ is 
+
+$$
+\begin{aligned}
+Pr \{ A_t, S_{t+1}, A_{t+1}, \dots, S_T \mid S_t, A_{t:T-1} \sim \pi \}
+& = \pi(A_t | S_t)p(S_{t+1}|S_t, A_t)\pi(A_{t+1}|S_{t+1}) \dots p(S_T|S_{T-1}, A_{T-1}) \\
+& = \prod_{k=t}^{T-1} \pi(A_k|S_k)p(S_{k+1}|S_k, A_k),
+\end{aligned}
+$$
+
+where $p$ is the state-transition probability function defined by (3.4)
+
+The importance-sampling ratio is 
+
+$$
+\rho_{t:T-1} = \prod_{k=t}^{T-1} \frac{\pi(A_k | S_k)}{b(A_k | S_k)}.
+$$
+
+The importance-sampling ratio depends only on the two policies and the sequence, not on the MDP.
+
+The ratio $\rho_{t:T-1}$ transforms the returns to have the right expected value:
+
+$$
+\mathbb{E}[ \rho_{t:T-1}G_t | S_t = s] = v_\pi(s).
+$$
+
+See page 104 for the Monte Carl algorithm that averages returns from a batch of observed episodes following policy $b$ to estimate $v_\pi(s)$.
+
+Ordinary importance sampling is unbiased whereas weighted importance sampling is biased (though the bias converges asymptotically to zero).
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
