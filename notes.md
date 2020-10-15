@@ -566,6 +566,28 @@ Monte Carlo methods can be used to find optimal policiesgiven only sample episod
 
 See Exercise 5.4 for improved version.
 
+## 5.4  Monte Carlo Control without Exploring Starts
+
+Assumption of exploring starts is unlikely. The only general way to ensure that all actions are selected infinitely often is for the agent ot continue to select them. There are two approaches:
+
+**On-policy methods:** evaluate or improve the policy that is used to make decisions
+
+**Off-policy methods** evaluate or improve a policy different from that used to generate the data.
+
+The Monte Carlo ES method is an example of an on-policy method.
+
+**Soft policy:** $\pi(a|s) > 0 \text{ for all } s \in \mathcal{S} \text{ and all } a \in \mathcal{A}(s)$
+
+**$\epsilon$-soft policy:** $\pi(a|s) \geq \frac{\epsilon}{|\mathcal{A}(s)|}$ for all states and actions, for some $\epsilon > 0$
+
+The idea of on-policy Monte Carlo control is still that of GPI. In our on-policy methods we will move it only to an $\epsilon$-greedy policy, since GPI does not require that the policy be taken all the way to a greedy policy.
+
+![](images/onp-fv-mc-control.png)
+
+Improvement is assured by the policy improvement theorem.
+
+Policy iteration works for $\epsilon$-soft policies.
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
