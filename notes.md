@@ -662,6 +662,12 @@ $$
 
 Ordinary importance sampling is unbiased whereas weighted importance sampling is biased (though the bias converges asymptotically to zero).
 
+## 5.6 Incremental Implementation
+
+Monte Carlo prediction methods can be implemented incrementally, on an episode-by-episode basis. In Monte Carlo methods we average *returns*.
+
+![](images/offp-mc-pred-q.png)
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
