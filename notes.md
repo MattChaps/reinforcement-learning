@@ -528,6 +528,16 @@ Estimates for each state are independent.
 - The ability to learn from actual experience
 - The ability to learn from simulated experience
 
+## 5.2 Monte Carlo Estimation of Action Values
+
+If a model is not available, then it is particularly useful to estimate _action_ values rather than _state_ values. With a model, state values alone are sufficient to determine a policy. One of our primary goals for Monte Carlo methods is to estimate $q_*$. TO achieve this, we first consider the policy evaluation problem for action values.
+
+The policy evaluation problem for action values is to estimate $q_\pi(s,a)$. The MC methods for this are essentially the same as just presented for state values, replacing state with state-action pair.
+
+The complication is that many state-action pairs may never be visited. To compare alternatives we need to estimate the value of _all_ the actions from each state.
+
+This is the general problem of _maintaining exploration_. One way to do this is by specifying that the episodes _start in a state-action pair_, and that every pair has a nonzero probability of being selected at the start. We call this the assumption of _exploring starts_.
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
