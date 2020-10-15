@@ -634,7 +634,31 @@ $$
 \mathbb{E}[ \rho_{t:T-1}G_t | S_t = s] = v_\pi(s).
 $$
 
-See page 104 for the Monte Carl algorithm that averages returns from a batch of observed episodes following policy $b$ to estimate $v_\pi(s)$.
+**Monte Carl algorithm that averages returns from a batch of observed episodes following policy $b$ to estimate $v_\pi(s)$**
+
+For an every-visit method, let $\mathcal{T}(s)$ denote the set of all time steps in which state $s$ is visited.
+
+For a first-visit method, let $\mathcal{T}(s)$ denote the set of all time steps that were first visits to $s$ within their episodes.
+
+Let $T(t)$ denote the first time of termination following time t.
+
+Let $G_t$ denote the return after $t$ up through $T(t)$.
+
+Then $\{ G_t \}_{t \in \mathcal{T}(s)}$ are the returns that pertain to state $s$, and $\{\rho_{t:T(t)-1}\}_{t \in \mathcal{T}(s)}$ are the corresponding importance-sampling ratios.
+
+**Ordinary importance sampling:** to estimate $v_\pi(s)$, scale the returns by the ratios and average the results:
+
+$$
+V(s) \doteq \frac{\sum_{t \in \mathcal{T}(s)} \rho_{t:T(t)-1} G_t}{|\mathcal{T}(s)|}
+\tag{5.5}
+$$
+
+**Weighted importance sampling:** uses a *weighted* average
+
+$$
+V(s) \doteq \frac{\sum_{t \in \mathcal{T}(s)} \rho_{t:T(t)-1} G_t}{\sum_{t \in \mathcal{T}(s)} \rho_{t:T(t)-1}}
+\tag{5.6}
+$$
 
 Ordinary importance sampling is unbiased whereas weighted importance sampling is biased (though the bias converges asymptotically to zero).
 
