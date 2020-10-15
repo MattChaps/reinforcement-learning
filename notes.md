@@ -538,6 +538,34 @@ The complication is that many state-action pairs may never be visited. To compar
 
 This is the general problem of _maintaining exploration_. One way to do this is by specifying that the episodes _start in a state-action pair_, and that every pair has a nonzero probability of being selected at the start. We call this the assumption of _exploring starts_.
 
+## 5.3 Monte Carlo Control
+
+**Control:** to approximate optimal policies 
+
+Procees according to the idea of generalised policy iteration (GPI)
+
+![](images/gpi.png)
+
+**Monte Carlo version of classical policy iteration:** perform alternating steps of policy evaluation and policy improvement, beginning with an arbitrary policy $\pi_0$ and ending with the optimal policy and optimal action-value function.
+
+![](images/mc-pol-iter.png)
+
+Assuming that we observe an infinite number of episodes and the episodes are generated with exploring starts, the MC methods will compute each $q_{\pi_k}$ exactly, for arbitrary $\pi_k$.
+
+For any action-value function $q$, the corresponding greedy policy is the one that, for each $s \in \mathcal{S}$, deterministically chooses an action with maximal action-value:
+
+$$
+\pi(s) \doteq \argmax_a q(s, a)
+$$
+
+Policy improvement can be done by constructing each $\pi_{k+1}$ as the greedy policy with respect to $q_{\pi_k}$. The policy improvement theorem applies to $\pi_k$ and $\pi_{k+1}$.
+
+Monte Carlo methods can be used to find optimal policiesgiven only sample episodes and no other knowledge of the environment’s dynamics.
+
+![](images/mc-es.png)
+
+See Exercise 5.4 for improved version.
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
