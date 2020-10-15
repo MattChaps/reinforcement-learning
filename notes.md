@@ -668,6 +668,14 @@ Monte Carlo prediction methods can be implemented incrementally, on an episode-b
 
 ![](images/offp-mc-pred-q.png)
 
+## 5.7 Off-policy Monte Carlo Control
+
+An advantage is that the target policy may be greedy, while the behaviour policy can continue to sample all possible actions.
+
+These methods follow the behaviour policy while learning about and improving the target policy.
+
+![](images/offp-mc-control.png)
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
