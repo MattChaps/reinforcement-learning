@@ -676,6 +676,12 @@ These methods follow the behaviour policy while learning about and improving the
 
 ![](images/offp-mc-control.png)
 
+# 6 Temporal-Difference Learning
+
+Like Monte Carlo methods, TD methods can learn directly from raw experience without a model of the environment's dynamics. Like DP, TD methods update estimates based in part on other learned estimates, without waiting for a final outcome.
+
+For the *control* problem (finding an optimal policy), DP, TD, and Monte Carlo methods all use some variation of generalised policy iteration (GPI).
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
