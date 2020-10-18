@@ -682,6 +682,36 @@ Like Monte Carlo methods, TD methods can learn directly from raw experience with
 
 For the *control* problem (finding an optimal policy), DP, TD, and Monte Carlo methods all use some variation of generalised policy iteration (GPI).
 
+## 6.1 TD Prediction
+
+**constant-$\alpha$ MC:** a every-visit Monte Carlo method suitable for nonstationary environments is 
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha \left[ G_t - V(S_t) \right],
+\tag{6.1}
+$$
+
+where $G_t$ is the actual return following time t.
+
+**TD(0)/one-step TD:** TD methods need to wait only until the next time step to determine the increment to $V(S_t)$. At time $t+1$ they form a target ad make a update using the observed reward $R_{t+1}$ and the estimate $V(S_{t+1})$. THe simplest TD method makes the update 
+
+$$
+V(S_t) \leftarrow V(S_t) + \alpha \left[ R_{t+1} + \gamma V(S_{t+1}) - V(S_t) \right]
+\tag{6.2}
+$$
+
+on transition to $S_{t+1}$ and receiving $R_{t+1}$.
+
+The target for the TD update is $R_{t+1} + \gamma V(S_{t+1})$.
+
+![](images/td-0.png)
+
+The TD target is an estimate because it samples the expected values *and* it uses the current estimate $V$ instead of the true $v_\pi$.
+
+**TD error** $\delta_t \doteq R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$
+
+TD error at each time is the error in the estimate *made at that time*. $\delta_t$ is the error in $V(S_t)$, available at time $t+1$. If the array $V$ does not change during the episode (as it does not in Monte Carlo methods), then the Monte Carlo error can be written as a sum of TD errors.
+
 ## 8.9 Heuristic Search 
 
 For each state encountered, a large tree of possible continuations is considered. The approximate value function is applied to the leaf nodes and then backed up toward the current state at the root. Then, the best is chosen as the current action.
