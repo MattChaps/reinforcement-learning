@@ -9,6 +9,14 @@ In this literature survey we:
 2. describe existing work in the field, including the kinds of problems that have been solved and the approaches to solving them; as well as
 3. state what we will be taking forward to use in our own project.
 
+## The problem
+
+Given a chess game, what moves do you pick to win? Or, given a racetrack, how do you drive to get the best lap time? These are two examples of problems that can be solved with reinforcement learning.
+
+In both cases, a person might have knowledge of what to do from experience: you move your king to avoid check-mate, or you accelerate after leaving a corner. This knowledge has been accumulated from playing several games of chess or hours of driving. However, there will have been a time where you did not know how to play chess or drive a car.
+
+Like humans, computers can be made to learn how to do something the 'best way', by doing it over and over again and learning from each iteration.
+
 ## Motivation
 
 There are some problems we want to solve that are too complex to program every rule for a computer to follow (such as those with continuous spaces). An example is $\dots$. 
