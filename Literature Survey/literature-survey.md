@@ -1,8 +1,15 @@
-# Literature Survey
+# Reinforcement Learning: Literature Survey
 
-## The problems we want to solve
+## Introduction
 
-We want computers to be able to solve problems for us. Commonly, we can tell them how to do things (supervised); or, we can ask them to spot patterns (unsupervised). How well the computer solves the problem is only as good as how well we can solve it, because we tell the computer what to do. What if computers can learn how to solve problems by themselves, without us having to give each step? After all, that is how humans learn &mdash; by trial and error. It could be that the computer learns to solve the problem in a novel and more efficient way that we hadn't thought of. Thus, by observing the computer we ourselves can learn new things. The field of teaching computers to learn for themselves is called Reinforcement Learning.
+How can a computer be made to learn, the way humans do? This is what reinforcement learning studies.
+
+In this literature survey we:
+1. describe the problems we want to solve with reinforcement learning and explain why they are interesting; 
+2. describe existing work in the field, including the kinds of problems that have been solved and the approaches to solving them; as well as
+3. state what we will be taking forward to use in our own project.
+
+## Motivation
 
 There are some problems we want to solve that are too complex to program every rule for a computer to follow (such as those with continuous spaces). An example is $\dots$. 
 
