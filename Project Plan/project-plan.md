@@ -1,35 +1,33 @@
 # Project Plan
 
-## Anticipated outcome
+## Research question
 
-A reinforcement learning agent that plays Backgammon successfully.
+How well do Q-Learning and Policy Optimisation algorithms perform in model-free reinforcement learning?
 
 ## Description
 
-Much work has been done in the study of machine learning for game playing. This project aims to explore traditional implementations of reinforcement learning agents that play Backgammon successfully; implement at least one reinforcement learning algorithm to learn to play Backgammon; and compare any implemented algorithms.
+Much work has been done in the study of machine learning for game playing. This project aims to explore model-free reinforcement learning algorithms; implement at least one reinforcement learning algorithm to perform successfully in an environment; and compare any implemented algorithms.
 
 ## Preliminary preparation 
 
-- Understanding of a library for machine learning (such as TensorFlow or PyTorch).
-- Familiarity with the game Backgammon.
-- Understanding of traditional reinforcement learning algorithms (such as temporal difference learning).
-- Understanding of modern reinforcement learning algorithms (such as Q-learning and deep reinforcement learning).
+- Understanding of PyTorch.
+- Familiarity with OpenAI Gym.
+- Understanding of the theory behind Q-Learning algorithms.
+- Understanding of the theory behind Policy Optimisation algorithms.
 
 ## Objectives
 
 ### Must have
 
-- Develop a reinforcement learning algorithm to learn to play Backgammon successfully.
+- Develop a Deep Q-Learning algorithm (DQN) to perform successfully in an OpenAI Gym environment.
 
 ### Should have
 
-- Develop at least another reinforcement learning algorithm, and compare the approaches. The learning algorithms could be:
-  - Q-learning, or
-  - deep reinforcement learning.
+- Develop another deep reinforcement learning algorithm, Vanilla Policy Gradient (VPG), and compare the approaches.
 
 ### Could have
 
-- Implement an interface for a user to play against the trained agents.
+- Implement a third deep reinforcement learning algorithm, Deep Deterministic Policy Gradient (DDPG), to study the combination of Q-Learning and Policy Optimisation algorithms.
 
 ## Plan
 
