@@ -12,47 +12,28 @@
 
 \section{Introduction}
 
-Reinforcement learning is the class of problems concerned with an agent learning behaviour through trial-and-error interactions with a dynamic
-environment \cite{Kaelbling1996}.
+Reinforcement learning is the class of problems concerned with an agent learning behaviour through trial-and-error interactions with a dynamic environment \cite{Kaelbling1996}.
 
 An example is an aspiring tightrope artist (the agent) learns to walk
 from one end of a rope to another without falling (the behaviour) by
-repeatedly correcting their balance (the trial-and-error interactions)
-whenever the rope wobbles beneath them (the dynamic environment).
+repeatedly correcting their balance (the trial-and-error interactions) whenever the rope wobbles beneath them (the dynamic environment).
 
 In this literature survey we: 
-
 \begin{enumerate}
-  \item{describe reinforcement learning problems, and explain why they are interesting to solve;} 
+  \item{describe the problems we want to solve with reinforcement learning, and explain why they are interesting to solve;} 
   \item{describe historical and current work in the field, including the kinds of problems solved and the approaches; as well as,} 
   \item{state what we will be using in our own project.}
 \end{enumerate}
 
 \section{Motivation}
 
-The Holy Grail of all AI, as Pedro Domingos puts it in
-
-Reinforcement learning is useful in solving problems where there is a
-measure of an optimal solution.
-
-A problem might be, "How do I play to have the greatest chance of winning a game of Backgammon?"
-Here, the optimal solution is a strategy that tells you the best move to make each turn. In \cite{}
-
-Beyond games, reinforcement learning problems exist in practical areas,
-such as in control tasks in robotics \cite{Kober2013} and scheduling problems in
-memory management \cite{Ipek2008}.
-
-We are interested in solving these problems because in doing so we
-develop systems that are more efficient and lead to improvements in
-quality of life.
+A primary goal of some research is the development of artificial general intelligence (AGI) \cite{}, where intelligence is defined as the ``adaptation with insufficient knowledge and resources'' \cite{OnDefiningArtificialIntelligence}. Reinforcement learning is itself an area of artificial intelligence (AI), as it is a technique humans and other animals use to understand their environment and generalise past experience to new situations \cite{Mnih2015}. Therefore, to study reinforcement learning is to study how a machine can be made to learn how humans do. This is interesting because it allows machines to learn and solve complex problems for us by themselves
 
 \section{Historical Work}
 
 \subsection{Markov Decision Processes}
 
-To abstract a real problem as a reinforcement learning problem, the environment 
-must also have a notion of state, which the agent can sense and take actions accordingly to achieve a goal 
-relating to the state of its environment \cite{Sutton1998}.
+Markov Decision Processes (MDPs) are a mathematically idealised form of the reinforcement learning problem. In a MDP, the agent senses the state of its environment, selects an action, which changes the state of the environment, and receives a reward from the environment \cite{Sutton1998}. The goal of the agent is to maximise the total reward received by the environment over time.
 
 \subsection{The Gambler's Problem (Dynamic Programming)}
 
