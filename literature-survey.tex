@@ -1,0 +1,92 @@
+\documentclass{article}
+
+\usepackage{biblatex}
+
+\addbibresource{references.bib}
+
+\title{Reinforcement Learning: A Literature Survey}
+\author{Matthew Chapman}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  
+\end{abstract}
+
+\section{Introduction}
+
+Reinforcement learning is the class of problems concerned with an agent
+learning behaviour through trial-and-error interactions with a dynamic
+environment \cite{Kaelbling1996}.
+
+An example is an aspiring tightrope artist (the agent) learns to walk
+from one end of a rope to another without falling (the behaviour) by
+repeatedly correcting their balance (the trial-and-error interactions)
+whenever the rope wobbles beneath them (the dynamic environment).
+
+In this literature survey we: 
+
+\begin{enumerate}
+  \item{describe reinforcement learning problems, and explain why they are interesting to solve;} 
+  \item{describe historical and current work in the field, including the kinds of problems solved and the approaches; as well as,} 
+  \item{state what we will be using in our own project.}
+\end{enumerate}
+
+\section{Motivation}
+
+Reinforcement learning is useful in solving problems where there is a
+measure of an optimal solution.
+
+A problem might be, "How do I play to have the greatest chance of winning a game of Backgammon?"
+Here, the optimal solution is a strategy that tells you the best move to make each turn. In \cite{}
+
+Beyond games, reinforcement learning problems exist in practical areas,
+such as in control tasks in robotics \cite{Kober2013} and scheduling problems in
+memory management \cite{Ipek2008}.
+
+We are interested in solving these problems because in doing so we
+develop systems that are more efficient and lead to improvements in
+quality of life.
+
+\section{Historical Work}
+
+\subsection{Markov Decision Processes}
+
+To abstract a real problem as a reinforcement learning problem, the environment 
+must also have a notion of state, which the agent can sense and take actions accordingly to achieve a goal 
+relating to the state of its environment \cite{Sutton1998}.
+
+\subsection{The Gambler's Problem (Dynamic Programming)}
+
+\subsection{Blackjack (Monte Carlo Methods)}
+
+\subsection{Backgammon (Temporal-Difference Learning)}
+
+"TD-Gammon is a neural network that trains itself to be an evaluation function for the game of backgammon by playing 
+
+\subsection{(Policy Gradient Methods)}
+
+\section{Current Work}
+
+\subsection{(Q-Learning)}
+Q-learning is a value-based class of algorithms that aim to build a value function, which subsequently lets us define a policy.
+
+$Q$-learning keeps a lookup table of values $Q(s,a)$ with one entry for every state-action pair. In order to learn the optimal $Q$-value function, the $Q$-learning algorithm makes use of the Bellman equation for the $Q$-value function (Bellman and Dreyfus,1962) whose unique solution is $Q^*(s,a)$.
+
+This is often inapplicable with a high-dimensional state-action space.
+
+\subsection{Atari 2600 (Deep Q-networks)}
+
+The DQN algorithm obtains strong performance in an online setting for a variety of ATARI games, directly by ;earning from the pixels.
+
+Rewards are clipped between $-1$ and $+1$.
+
+\section{Our Project}
+
+Pull it all together, and say what we are taking to use in the project
+
+In this project, we want to look at deep reinforcement learning algorithms, implement them, and analyse their performance in those environments provided by OpenAI Gym.
+
+\printbibliography
+\end{document}
