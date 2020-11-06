@@ -47,9 +47,11 @@ Together, the agent and MDP give rise to a trajectory like this:
   \item{The environment is changed, now at time $t+1$, and returns a reward signal, $R_{t+1}$, to the agent, and the process is repeated.}
 \end{enumerate}
 
-\begin{center}
+\begin{figure}[h]
+  \centering
   \includegraphics[width=1.0\textwidth]{images/fig-3.1.png}
-\end{center}
+  \caption{The agent-environment interaction in a Markov decision process \cite{Sutton1998}.}
+\end{figure}
 
 The agent selects actions dictated by its policy, $\pi$, and the goal of the agent is to maximise the total reward it receives from the environment over time.
 
@@ -264,14 +266,33 @@ behaviour policy can continue to sample all possible actions.
 These methods follow the behaviour policy while learning about and
 improving the target policy.
 
-\section{Deep Q-networks}
+\section{Deep Reinforcement Learning}
+
+Deep reinforcement learning is the field of research that combines reinforcement learning and deep learning. It has allowed machines to solve more complex decision-making tasks than ever before, due to its usefulness in problems with high dimensional state-space and/or low prior knowledge \cite{DBLP:journals/corr/abs-1811-12560} For example, a deep RL agent can learn from inputs made up of pixels to play Atari 2600 games by using a deep convolutional neural network to approximate the optimal action-value function \cite{Mnih2015}. Deep RL comes with its own challenges, and so a variety of deep RL algorithms have been developed.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{images/deep-rl-algorithms.png}
+  \caption{A taxonomy of deep reinforcement learning algorithms \cite{openai_2018}.}
+  \label{fig:deep-rl-algorithms}
+\end{figure}
+
+The first branching point in the tree is to decide whether an RL algorithm is model-free or model-based. The algorithm is model-based if the agent has access to (or learns) a model of the environment; that is, there is a function which predicts state transitions and rewards. Otherwise, it is model-free.
+
+Model-free methods are then divided into two families: policy optimisation, and Q-learning.
+
+\section{Policy Optimisation \cite{openai_2018}} 
+
+Policy optimisation methods represent a policy explicitly as $\pi_\theta(a|s)$ and optimise the parameters $\theta$ either directly by gradient ascent on $J(\pi_\theta)$, the expected return when the agent acts according to it, or indirectly, by maximising local approximations of $J(\pi_\theta)$. They also involve learning an approximator for the on-policy value function, which gets used in figuring out how to update the policy.
+
+\section{Q-Learning}
 Q-learning is a value-based class of algorithms that aim to build a value function, which subsequently lets us define a policy.
 
-$Q$-learning keeps a lookup table of values $Q(s,a)$ with one entry for every state-action pair. In order to learn the optimal $Q$-value function, the $Q$-learning algorithm makes use of the Bellman equation for the $Q$-value function (Bellman and Dreyfus,1962) whose unique solution is $Q^*(s,a)$.
+$Q$-learning keeps a lookup table of values $Q(s,a)$ with one entry for every state-action pair. In order to learn the optimal $Q$-value function, the $Q$-learning algorithm makes use of the Bellman equation for the $Q$-value function whose unique solution is $Q^*(s,a)$ \cite{DBLP:journals/corr/abs-1811-12560}.
 
-This is often inapplicable with a high-dimensional state-action space.
+However, convergence to the optimal value function assumes that the state-action pairs are represented discretely, and all actions are repeatedly sampled in all states; this is often inapplicable with a high-dimensional state-action space.
 
-Deep Q-networks (DQN) combine reinforcement learning with deep neural networks. Mnih et al. \cite{Mnih2015} used a deep convolutional neural network to approximate the optimal action-value function. To address instability in learning when a nonlinear function approximator such as a neural network is used, a mechanism called experience replay was employed with an iterative update that adjusts the action-values (Q) towards target values that are only periodically updated, thereby reducing correlations with the target. The agent they trained achieved a level comparable to that of a professional human games tester across a set of 49 ATARI games.
+Deep Q-networks (DQN)
 
 \section{Our Project}
 
