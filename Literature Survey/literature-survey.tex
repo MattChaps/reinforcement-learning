@@ -31,9 +31,9 @@ In this literature survey we:
 Much of the environments mentioned in this literature survey are of games, as they (board games in particular) are ideal testing grounds for exploring concepts and approaches in reinforcement learning and artificial intelligence \cite{Tesauro1995}.
 
 \section{Motivation}
-Reinforcement learning is an area of machine learning, which in turn is a subset of artificial intelligence. A major goal of some research is to develop artificial general intelligence (AGI), a machine capable of understanding or learning any intellectual task that a human can. Solving the AGI problem is interesting, as it would prove that intelligence can be programmed without divine intervention. 
-
 Reinforcement learning agents exhibit behaviour similar to intelligence, with intelligence defined as ``adaptation with insufficient knowledge and resources'' \cite{OnDefiningArtificialIntelligence}. It is also said that humans and other animals use reinforcement learning to understand their environment and generalise past experience to new situations \cite{Mnih2015}. To study reinforcement learning, therefore, is to study a small area of exhibiting human intelligence in machines, and solving reinforcement learning problems, such as those done in robotics \cite{Kober2013} or chip design  \cite{Ipek2008}, can lead to developments that improve quality of life and ultimately contribute to the search for AGI.
+
+In the following section, we start off by introducing constraints to restrict ourselves to "simple" environments with well-defined rewards that are easier to solve mathematically. 
 
 \section{Markov Decision Processes}
 
@@ -292,7 +292,7 @@ $Q$-learning keeps a lookup table of values $Q(s,a)$ with one entry for every st
 
 However, convergence to the optimal value function assumes that the state-action pairs are represented discretely, and all actions are repeatedly sampled in all states; this is often inapplicable with a high-dimensional state-action space.
 
-\section{Long Short-Term Memory (LSTM) \cite{10.5555/2980539.2980731}}
+\section{Long Short-Term Memory (LSTM) \cite{RLLSTM}}
 
 Among the more important tasks for RL are tasks where part of the state of the environment is \textit{hidden} from the agent. The agent now not only needs to learn the mapping from environmental states to actions, for optimal performance it needs to determine which environmental state it is in as well.
 
