@@ -237,6 +237,10 @@ In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,
 
 SDG methods minimise error on the observed samples by adjusting the weight vector after each vector by a small amount in the direction that would most reduce the error on that example: $$\mathbf{w}_{t+1} \doteq \mathbf{w}_t - \frac{1}{2} \alpha \nabla \left[ v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t)\right]^2,$$ where $\alpha$ is a positive step-size parameter.
 
+\section{Proximal Policy Optimisation}
+
+Proximal policy optimization (PPO) algorithms are a family of policy gradient methods for reinforcement learning that alternate between sampling data through interaction with the environment, and optimising a ``surrogate'' objective function using stochastic gradient ascent. Unlike standard policy gradient methods, multiple epochs of mini-batch updates are possible instead of performing one gradient update per data sample \cite{DBLP:journals/corr/SchulmanWDRK17}.
+
 \section{Deep Reinforcement Learning}
 
 Deep reinforcement learning is the field of research that combines reinforcement learning and deep learning. It has allowed machines to solve more complex decision-making tasks than ever before, due to its usefulness in problems with high dimensional state-space and/or low prior knowledge \cite{DBLP:journals/corr/abs-1811-12560} For example, a deep RL agent can learn from inputs made up of pixels to play Atari 2600 games by using a deep convolutional neural network to approximate the optimal action-value function \cite{Mnih2015}. Deep RL comes with its own challenges, and so a variety of deep RL algorithms have been developed.
