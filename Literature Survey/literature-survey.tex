@@ -292,7 +292,15 @@ $Q$-learning keeps a lookup table of values $Q(s,a)$ with one entry for every st
 
 However, convergence to the optimal value function assumes that the state-action pairs are represented discretely, and all actions are repeatedly sampled in all states; this is often inapplicable with a high-dimensional state-action space.
 
-Deep Q-networks (DQN)
+\section{Long Short-Term Memory (LSTM) \cite{10.5555/2980539.2980731}}
+
+Among the more important tasks for RL are tasks where part of the state of the environment is \textit{hidden} from the agent. The agent now not only needs to learn the mapping from environmental states to actions, for optimal performance it needs to determine which environmental state it is in as well.
+
+Long-term dependencies allow the agent to distinguish between identical states in its environment, such as T-junctions in a maze, by remembering observations or actions before reaching the state. LSTM is a solution to learning long-term dependencies in timeseries data.
+
+LSTM is a RNN architecture that solves the problem that conventional RNN algorithms have with errors propagating back in time tending to either vanish or blow up.
+
+RNNs can be applied to RL tasks by letting it learn a model of the environment. LSTM's architecture would allow the predictions of observations and rewards to depend on information from long ago. The model-based system could then learn the mapping from environmental states to actions using standard techniques such as Q-learning. Alternatively, the RNN could directly approximate the value function of a RL algorithm.
 
 \section{Our Project}
 
