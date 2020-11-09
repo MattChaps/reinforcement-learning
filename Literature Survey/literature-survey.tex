@@ -33,11 +33,17 @@ Much of the environments mentioned in this literature survey are of games, as th
 \section{Motivation}
 Reinforcement learning agents exhibit behaviour similar to intelligence, with intelligence defined as ``adaptation with insufficient knowledge and resources'' \cite{OnDefiningArtificialIntelligence}. It is also said that humans and other animals use reinforcement learning to understand their environment and generalise past experience to new situations \cite{Mnih2015}. To study reinforcement learning, therefore, is to study a small area of exhibiting human intelligence in machines, and solving reinforcement learning problems, such as those done in robotics \cite{Kober2013} or chip design  \cite{Ipek2008}, can lead to developments that improve quality of life and ultimately contribute to the search for AGI.
 
-In the following section, we start off by introducing constraints to restrict ourselves to "simple" environments with well-defined rewards that are easier to solve mathematically. 
+In the following section, we start off by introducing constraints to restrict ourselves to ``simple'' environments with well-defined rewards that are easier to solve mathematically. 
 
 \section{Markov Decision Processes}
 
-The classical framework used to abstract a real problem as a mathematically idealised reinforcement learning problem is the Markov Decision Process (MDP).
+To formalise this idea, we phrase the process of ``learning'' in terms of an optimisation problem. The framework in which this is done is that of Markov Decision Processes (MDPs).
+
+The Markov structure means that $$P(S_{t+1} | S_t) = P(S_{t+1} | S_1, S_2, \dots, S_t),$$ which is that the next state only depends on the current state of the environment the agent is in. 
+
+An example of an environment which possesses the Markov property is a Chess board: the next move a player can make depends only on the current board state, disregarding how the game was played up to that point. 
+
+This is important because we do not need to store any history, making it easier for the agent to determine an optimal behaviour. In fact, given perfect information, there are exactly solvable equations for the optimal solution \cite{}.
 
 Together, the agent and MDP give rise to a trajectory like this:
 
@@ -55,46 +61,11 @@ Together, the agent and MDP give rise to a trajectory like this:
 
 The agent selects actions dictated by its policy, $\pi$, and the goal of the agent is to maximise the total reward it receives from the environment over time.
 
-In order to maximise the total reward over time, the agent must consider more than just immediate rewards.
+To maximise the total reward over time, the agent must consider more than just immediate rewards. The \textbf{return} $$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1},$$ is the sum of (discounted) future rewards, where $\gamma \in [0,1]$ is the discount rate. This allows us to value states by a \textbf{value function} $$v_\pi(s) \doteq \mathbb{E}_\pi \left[ G_T \middle| S_t = s \right],$$ which is the expected return when starting in $s$ and following behaviour, or policy, $\pi$ thereafter, and actions by an \textbf{action-value function} $$q_\pi(s, a) \doteq \mathbb{E}_\pi[G_t | S_t = s, A_t = a],$$ which is the expected return starting from $s$, taking the action $a$, and thereafter following policy $\pi$.
 
-The \textbf{return} $G_t$ is defined as the discounted total future reward, 
+The best possible policy under these assumptions is given by the solution, $q_*$ to the Bellman optimality equation, $$ q_*(s,a) = \mathbb{E} \left[ R_{t+1} + \gamma \max_{a'} q_*(S_{t+1},a') \middle| S_t=s, A_t=a \right].$$ 
 
-\[ 
-G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+l+1},
-\]
-
-where $\gamma$ determines the weight (or importance) given to rewards at later time-steps.
-
-The \textbf{value function of a state $s$ under a policy $\pi$} is the total reward an agent can expect to accumulate, starting from $s$ and following $\pi$ thereafter:
-
-\[
-\begin{aligned}
-v_\pi(s) \doteq \mathbb{E}_\pi \left[ G_T \middle| S_t = s \right].
-\end{aligned}
-\]
-
-Every state must satisfy this condition.
-
-The \textbf{value function of taking action \(a\) in state \(s\) under a policy \(\pi\)},
-
-\[
-\begin{aligned}
-q_\pi(s, a) & \doteq \mathbb{E}_\pi[G_t | S_t = s, A_t = a] \\
-& = \mathbb{E} \left[ \sum_{k=0}^{\infty}\gamma^k R_{t+k+1} \middle| S_t = s, A_t = a \right],
-\end{aligned}
-\]
-
-is the expected return starting from \(s\), taking the action \(a\), and
-thereafter following policy \(\pi\).
-
-Solving the \textbf{Bellman optimality equation for \(q_*\)},
-
-\[\begin{aligned} 
-q_*(s,a) & = \mathbb{E} \left[ R_{t+1} + \gamma \max_{a'} q_*(S_{t+1},a') \middle| S_t=s, A_t=a \right], 
-\end{aligned}\]
-
-provides one route to finding an optimal policy, and thus to solving the reinforcement learning problem. However, the solution relies on at
-least three assumptions that are rarely true in practice:
+However, the solution relies on at least three assumptions that are rarely true in practice:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -106,7 +77,7 @@ least three assumptions that are rarely true in practice:
   the states have the Markov property.
 \end{enumerate}
 
-Section 5 highlights methods that circumvent this.
+Usable RL methods provide ways of approximating solutions to $q_*$ even when lacking complete information or having restricted computational resources. We will consider such methods in the next sections.
 
 \section{Dynamic Programming}
 
