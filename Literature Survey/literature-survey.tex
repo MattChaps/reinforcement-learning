@@ -286,7 +286,17 @@ The theoretical TRPO update is: $$\theta_{k+1} = arg \max_\theta \mathcal{L}(\th
 
 \subsection{Proximal Policy Optimisation}
 
-Proximal policy optimization (PPO) algorithms are a family of policy gradient methods for reinforcement learning that alternate between sampling data through interaction with the environment, and optimising a ``surrogate'' objective function using stochastic gradient ascent. Unlike standard policy gradient methods, multiple epochs of mini-batch updates are possible instead of performing one gradient update per data sample \cite{DBLP:journals/corr/SchulmanWDRK17}.
+Proximal policy optimization (PPO) algorithms alternate between sampling data through interaction with the environment, and optimising a ``surrogate'' objective function using stochastic gradient ascent. Unlike standard policy gradient methods, multiple epochs of mini-batch updates are possible instead of performing one gradient update per data sample \cite{DBLP:journals/corr/SchulmanWDRK17}.
+
+Similar to TRPO, PPO tries to take the biggest possible improvement step on a policy using the data we currently have while avoiding performance collapse. PPO is a family of first-order methods that are significantly simpler to implement, and perform at least as well as TRPO.
+
+The PPO variant we consider is PPO-Clip: it does not have a KL-divergence term in the objective and does not have a constraint at all; instead, it relies on specialised clipping in the objective function to remove incentives for the new policy to get far fro the old policy.
+
+PPO-clip updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ typically taking multiple steps of (minibatch) SDG to maximise the objective. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $/epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
+
+A simplified version is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$
+
+To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima.
 
 \section{Q-Learning}
 Q-learning is a value-based class of algorithms that aim to build a value function, which subsequently lets us define a policy.
