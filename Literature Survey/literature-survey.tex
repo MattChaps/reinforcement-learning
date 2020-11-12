@@ -31,7 +31,7 @@ In this literature survey we:
 Much of the environments mentioned in this literature survey are of games, as they (board games in particular) are ideal testing grounds for exploring concepts and approaches in reinforcement learning and artificial intelligence \cite{Tesauro1995}.
 
 \section{Motivation}
-Reinforcement learning agents exhibit behaviour similar to intelligence, with intelligence defined as ``adaptation with insufficient knowledge and resources'' \cite{OnDefiningArtificialIntelligence}. It is also said that humans and other animals use reinforcement learning to understand their environment and generalise past experience to new situations \cite{Mnih2015}. To study reinforcement learning, therefore, is to study a small area of exhibiting human intelligence in machines, and solving reinforcement learning problems, such as those done in robotics \cite{Kober2013} or chip design  \cite{Ipek2008}, can lead to developments that improve quality of life and ultimately contribute to the search for AGI.
+Reinforcement learning agents exhibit behaviour similar to intelligence, with intelligence defined as ``adaptation with insufficient knowledge and resources'' \cite{OnDefiningArtificialIntelligence}. It is also said that humans and other animals use reinforcement learning to understand their environment and generalise past experience to new situations \cite{Mnih2015}. To study reinforcement learning, therefore, is to study a small area of exhibiting human intelligence in machines, and solving reinforcement learning problems, such as those done in robotics or chip design, can lead to developments that improve quality of life and ultimately contribute to the search for AGI \cite{Ipek2008, Kober2013}.
 
 In the following section, we start off by introducing constraints to restrict ourselves to ``simple'' environments with well-defined rewards that are easier to solve mathematically. 
 
@@ -65,7 +65,7 @@ To maximise the total reward over time, the agent must consider more than just i
 
 The best possible policy under these assumptions is given by the solution, $q_*$ to the Bellman optimality equation, $$ q_*(s,a) = \mathbb{E} \left[ R_{t+1} + \gamma \max_{a'} q_*(S_{t+1},a') \middle| S_t=s, A_t=a \right].$$ 
 
-However, the solution relies on at least three assumptions that are rarely true in practice:
+However, the solution relies on three assumptions that in reality can rarely be achieved:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -233,9 +233,25 @@ improving the target policy.
 
 Stochastic-gradient descent (SDG) methods are learning methods for function approximation in value prediction. They are well suited to online reinforcement learning, where data becomes available in sequential order and is used to update the best predictor at each step \cite{Mnih2015}.
 
-In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,\mathbf{w})$ is a differentiable function of a \textit{weight vector} $\mathbf{w} \doteq (w_1, w_2, \dots, w_d)^T$ for all $s \in \mathcal{S}$. $\mathbf{w}$ gets updated at each discrete $t = 0, 1, 2, 3, \dots$ with each new observation, and $\mathbf{w}_t$ denotes the weight vector at each step. We try to minimise the \textit{Mean Squared Value Error}, denoted $\overline{VE}$: $$\overline{VE} \doteq \sum_{s \in \mathcal{S}} \mu(s) \left[ v_\pi(s) - \hat{v}(s, \mathbf{w})\right]$$.
+In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,\mathbf{w})$ is a differentiable function of a \textit{weight vector} $\mathbf{w} \doteq (w_1, w_2, \dots, w_d)^T$ for all $s \in \mathcal{S}$. $\mathbf{w}$ gets updated at each discrete $t = 0, 1, 2, 3, \dots$ with each new observation, and $\mathbf{w}_t$ denotes the weight vector at each step. We try to minimise the \textit{Mean Squared Value Error}, denoted $\overline{VE}$: $$\overline{VE} \doteq \sum_{s \in \mathcal{S}} \mu(s) \left[ v_\pi(s) - \hat{v}(s, \mathbf{w})\right].$$
 
 SDG methods minimise error on the observed samples by adjusting the weight vector after each vector by a small amount in the direction that would most reduce the error on that example: $$\mathbf{w}_{t+1} \doteq \mathbf{w}_t - \frac{1}{2} \alpha \nabla \left[ v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t)\right]^2,$$ where $\alpha$ is a positive step-size parameter.
+
+\section{Policy Optimisation}
+
+Consider a stochastic, parametrised policy, $\pi_\theta$. We aim to maximise the expected return $J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ R(\tau) \right]$, where $R(\tau) = \sum_{t=0}^Tr_t$ gives the finite-horizon undiscounted return, the sum of rewards obtained in a fixed window of steps. The mechanism policy gradient algorithms use to optimise the policy is gradient ascent, e.g. $$\theta_{k+1} = \theta_k + \alpha \nabla_\theta J(\pi_\theta) |_{\theta_k},$$ where $\nabla_\theta J(\pi_\theta)$ is called the policy gradient.
+
+To use this function, we need an expression for the policy gradient which we can numerically compute. This involves two steps:
+\begin{enumerate}
+  \item deriving the analytical gradient of policy performance, which has the form of an expected value, and then
+  \item forming a sample estimate of that expected value, which can be computed with data from a finite number of agent-environment interaction steps.
+\end{enumerate}
+
+The simplest expression for the policy gradient, derived here \cite{}, is $$\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t | s_t) R(\tau) \right].$$ This is an expected which we can estimate with a sample mean $$\hat{g} = \frac{1}{\lvert \mathcal{D} \rvert} \sum_{\tau \in \mathcal{D}} \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t | s_t) R(\tau),$$ where $\lvert \mathcal{D} \rvert = \{ \tau_i \}_{i=1, \dots, N}$ is the number of trajectories in $\mathcal{D}$ (here, $N$).
+
+Taking a step with this gradient, however, pushes up the log-probabilities of each action in proportion to the sum of \textit{all rewards ever obtained}. We want to only reinforce actions based on rewards obtained after they are taken, by $$\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t | s_t) \sum_{t'=t}^T R(s_{t'}, a_{t'}, s_{t'+1}) \right].$$
+
+Furthermore, to reduce variance in the sample estimate for the policy gradient (resulting in faster and more stable learning), we can subtract the on-policy value function $V^\pi(s)$ (which cannot be computed exactly, so has to be approximated), which gives the expected return if we start in state $s$ and always act according to policy $/pi$, from the expression without changing it in expectation by the GLP lemma: $$\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t | s_t) \sum_{t'=t}^T R \left( s_{t'}, a_{t'}, s_{t'+1} - b(s_t)\right) \right].$$ 
 
 \section{Proximal Policy Optimisation}
 
