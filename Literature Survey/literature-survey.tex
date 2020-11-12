@@ -239,6 +239,10 @@ SDG methods minimise error on the observed samples by adjusting the weight vecto
 
 \section{Policy Optimisation}
 
+Policy optimisation methods represent a policy explicitly as $\pi_\theta(a|s)$ and optimise the parameters $\theta$ either directly by gradient ascent on $J(\pi_\theta)$, the expected return when the agent acts according to it, or indirectly, by maximising local approximations of $J(\pi_\theta)$. They also involve learning an approximator for the on-policy value function, which gets used in figuring out how to update the policy \cite{openai_2018}.
+
+\subsection{Intro To Policy Optimisation}
+
 Consider a stochastic, parametrised policy, $\pi_\theta$. We aim to maximise the expected return $J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ R(\tau) \right]$, where $R(\tau) = \sum_{t=0}^Tr_t$ gives the finite-horizon undiscounted return, the sum of rewards obtained in a fixed window of steps. The mechanism policy gradient algorithms use to optimise the policy is gradient ascent, e.g. $$\theta_{k+1} = \theta_k + \alpha \nabla_\theta J(\pi_\theta) |_{\theta_k},$$ where $\nabla_\theta J(\pi_\theta)$ is called the policy gradient.
 
 To use this function, we need an expression for the policy gradient which we can numerically compute. This involves two steps:
@@ -253,7 +257,13 @@ Taking a step with this gradient, however, pushes up the log-probabilities of ea
 
 Furthermore, to reduce variance in the sample estimate for the policy gradient (resulting in faster and more stable learning), we can subtract the on-policy value function $V^\pi(s)$ (which cannot be computed exactly, so has to be approximated), which gives the expected return if we start in state $s$ and always act according to policy $/pi$, from the expression without changing it in expectation by the GLP lemma: $$\nabla_\theta J(\pi_\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t | s_t) \sum_{t'=t}^T R \left( s_{t'}, a_{t'}, s_{t'+1} - b(s_t)\right) \right].$$ 
 
-\section{Proximal Policy Optimisation}
+\subsection{Vanilla Policy Gradient}
+
+The key idea of policy gradients is to push up the probabilities of actions that lead to higher return, and push down the probabilities of actions that lead to lower return, until you arrive at the optimal policy.
+
+Vanilla policy gradient (VPG) is an on-policy algorithm that can be used for environments with either discrete or continuous action spaces. The method is susceptible to the policy getting trapped in local optima.
+
+\subsection{Proximal Policy Optimisation}
 
 Proximal policy optimization (PPO) algorithms are a family of policy gradient methods for reinforcement learning that alternate between sampling data through interaction with the environment, and optimising a ``surrogate'' objective function using stochastic gradient ascent. Unlike standard policy gradient methods, multiple epochs of mini-batch updates are possible instead of performing one gradient update per data sample \cite{DBLP:journals/corr/SchulmanWDRK17}.
 
@@ -271,10 +281,6 @@ Deep reinforcement learning is the field of research that combines reinforcement
 The first branching point in the tree is to decide whether an RL algorithm is model-free or model-based. The algorithm is model-based if the agent has access to (or learns) a model of the environment; that is, there is a function which predicts state transitions and rewards. Otherwise, it is model-free.
 
 Model-free methods are then divided into two families: policy optimisation, and Q-learning.
-
-\section{Policy Optimisation \cite{openai_2018}} 
-
-Policy optimisation methods represent a policy explicitly as $\pi_\theta(a|s)$ and optimise the parameters $\theta$ either directly by gradient ascent on $J(\pi_\theta)$, the expected return when the agent acts according to it, or indirectly, by maximising local approximations of $J(\pi_\theta)$. They also involve learning an approximator for the on-policy value function, which gets used in figuring out how to update the policy.
 
 \section{Q-Learning}
 Q-learning is a value-based class of algorithms that aim to build a value function, which subsequently lets us define a policy.
