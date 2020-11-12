@@ -237,6 +237,21 @@ In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,
 
 SDG methods minimise error on the observed samples by adjusting the weight vector after each vector by a small amount in the direction that would most reduce the error on that example: $$\mathbf{w}_{t+1} \doteq \mathbf{w}_t - \frac{1}{2} \alpha \nabla \left[ v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t)\right]^2,$$ where $\alpha$ is a positive step-size parameter.
 
+\section{Deep Reinforcement Learning}
+
+Deep reinforcement learning is the field of research that combines reinforcement learning and deep learning. It has allowed machines to solve more complex decision-making tasks than ever before, due to its usefulness in problems with high dimensional state-space and/or low prior knowledge \cite{DBLP:journals/corr/abs-1811-12560} For example, a deep RL agent can learn from inputs made up of pixels to play Atari 2600 games by using a deep convolutional neural network to approximate the optimal action-value function \cite{Mnih2015}. Deep RL comes with its own challenges, and so a variety of deep RL algorithms have been developed.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{images/deep-rl-algorithms.png}
+  \caption{A taxonomy of deep reinforcement learning algorithms \cite{openai_2018}.}
+  \label{fig:deep-rl-algorithms}
+\end{figure}
+
+The first branching point in the tree is to decide whether an RL algorithm is model-free or model-based. The algorithm is model-based if the agent has access to (or learns) a model of the environment; that is, there is a function which predicts state transitions and rewards. Otherwise, it is model-free.
+
+Model-free methods are then divided into two families: policy optimisation, and Q-learning.
+
 \section{Policy Optimisation}
 
 Policy optimisation methods represent a policy explicitly as $\pi_\theta(a|s)$ and optimise the parameters $\theta$ either directly by gradient ascent on $J(\pi_\theta)$, the expected return when the agent acts according to it, or indirectly, by maximising local approximations of $J(\pi_\theta)$. They also involve learning an approximator for the on-policy value function, which gets used in figuring out how to update the policy \cite{openai_2018}.
@@ -263,24 +278,15 @@ The key idea of policy gradients is to push up the probabilities of actions that
 
 Vanilla policy gradient (VPG) is an on-policy algorithm that can be used for environments with either discrete or continuous action spaces. The method is susceptible to the policy getting trapped in local optima.
 
+\subsection{Trust Region Policy Optimisation}
+
+Trust region policy optimisation (TRPO) updates policies by taking the largest step possible to improve performance, while satisfying a special constraint on how close the new and old policies are allowed to be. The constraint is expressed in terms of KL-Divergence, a measure of distance between probability distributions.
+
+The theoretical TRPO update is: $$\theta_{k+1} = arg \max_\theta \mathcal{L}(\theta_k, \theta) \text{ s.t. } \overline{D}_{KL}(\theta || \theta_k) \leq \delta,$$ where $$\mathcal{L}(\theta_k, \theta) = \mathbb{E}_{s, a \sim \pi_{\theta_k}} \left[ \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a) \right],$$ and $$ \overline{D}_{KL}(\theta||\theta_k) = \mathbb{E}_{s \sim \pi_{\theta_k}} \left[ D_{KL}(\pi_\theta(\cdot|s) || \pi_{\theta_k}(\cdot|s)) \right].$$ In practice, the objective and constraint are expanded around $\theta_k$, resulting in an approximate optimisation problem. The approximate problem can then be analytically solved by the methods of Lagrangian duality; in addition, TRPO modifies the update rule by adding a backtracking line search.  
+
 \subsection{Proximal Policy Optimisation}
 
 Proximal policy optimization (PPO) algorithms are a family of policy gradient methods for reinforcement learning that alternate between sampling data through interaction with the environment, and optimising a ``surrogate'' objective function using stochastic gradient ascent. Unlike standard policy gradient methods, multiple epochs of mini-batch updates are possible instead of performing one gradient update per data sample \cite{DBLP:journals/corr/SchulmanWDRK17}.
-
-\section{Deep Reinforcement Learning}
-
-Deep reinforcement learning is the field of research that combines reinforcement learning and deep learning. It has allowed machines to solve more complex decision-making tasks than ever before, due to its usefulness in problems with high dimensional state-space and/or low prior knowledge \cite{DBLP:journals/corr/abs-1811-12560} For example, a deep RL agent can learn from inputs made up of pixels to play Atari 2600 games by using a deep convolutional neural network to approximate the optimal action-value function \cite{Mnih2015}. Deep RL comes with its own challenges, and so a variety of deep RL algorithms have been developed.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=1.0\textwidth]{images/deep-rl-algorithms.png}
-  \caption{A taxonomy of deep reinforcement learning algorithms \cite{openai_2018}.}
-  \label{fig:deep-rl-algorithms}
-\end{figure}
-
-The first branching point in the tree is to decide whether an RL algorithm is model-free or model-based. The algorithm is model-based if the agent has access to (or learns) a model of the environment; that is, there is a function which predicts state transitions and rewards. Otherwise, it is model-free.
-
-Model-free methods are then divided into two families: policy optimisation, and Q-learning.
 
 \section{Q-Learning}
 Q-learning is a value-based class of algorithms that aim to build a value function, which subsequently lets us define a policy.
