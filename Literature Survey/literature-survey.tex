@@ -229,9 +229,17 @@ behaviour policy can continue to sample all possible actions.
 These methods follow the behaviour policy while learning about and
 improving the target policy.
 
+\section{Temporal-Difference Learning}
+
+Temporal-difference (TD) learning gets the best of both DP methods and MC methods. Like MC methods, TD methods can learn directly from raw experience without requiring a model of the environment (it is model-free), or iterating over every state. Also like DP methods, TD methods can update their estimates without requiring the final outcome. 
+
+The main difference from MC methods is that we learn (update the value function) from incomplete episodes. Instead, we take a partial trajectory and estimate how much reward you think you'll get in place of the actual return (bootstrapping).
+
+In TD(0) (the simplest version of TD-learning), we update our value function $V(S_t)$ towards an estimate of the return: $$V(S_t) \leftarrow V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t)),$$ where the TD error $\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$.
+
 \section{Stochastic-gradient Methods}
 
-Stochastic-gradient descent (SDG) methods are learning methods for function approximation in value prediction. They are well suited to online reinforcement learning, where data becomes available in sequential order and is used to update the best predictor at each step \cite{Mnih2015}.
+Stochastic-gradient descent (SDG) methods are learning methods for function approximation in value prediction. They are well suited to online reinforcement learning (update our estimate of the value function at every step without waiting until the episode finishes), where data becomes available in sequential order and is used to update the best predictor at each step \cite{Mnih2015}.
 
 In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,\mathbf{w})$ is a differentiable function of a \textit{weight vector} $\mathbf{w} \doteq (w_1, w_2, \dots, w_d)^T$ for all $s \in \mathcal{S}$. $\mathbf{w}$ gets updated at each discrete $t = 0, 1, 2, 3, \dots$ with each new observation, and $\mathbf{w}_t$ denotes the weight vector at each step. We try to minimise the \textit{Mean Squared Value Error}, denoted $\overline{VE}$: $$\overline{VE} \doteq \sum_{s \in \mathcal{S}} \mu(s) \left[ v_\pi(s) - \hat{v}(s, \mathbf{w})\right].$$
 
