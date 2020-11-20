@@ -237,13 +237,39 @@ The main difference from MC methods is that we learn (update the value function)
 
 In TD(0) (the simplest version of TD-learning), we update our value function $V(S_t)$ towards an estimate of the return: $$V(S_t) \leftarrow V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t)),$$ where the TD error $\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$.
 
+\section{Function Approximation}
+
+For environments where there are too many states or actions to fit into memory, such as Backgammon with $10^{20}$ states or Go with $10^{170}$, which are too slow to process, we must estimate the value function: $$\hat{v}(s, \mathbf{w}) \simeq v_\pi(S).$$ For control, we'd do: $$\hat{q}(S, A, \mathbf{w}) \simeq q_\pi(S, A).$$
+
+Having replaced the value function with a function approximator, how do you train it? 
+
 \section{Stochastic-gradient Methods}
 
 Stochastic-gradient descent (SDG) methods are learning methods for function approximation in value prediction. They are well suited to online reinforcement learning (update our estimate of the value function at every step without waiting until the episode finishes), where data becomes available in sequential order and is used to update the best predictor at each step \cite{Mnih2015}.
 
 In gradient-descent methods, the \textit{approximate value function} $\hat{v}(s,\mathbf{w})$ is a differentiable function of a \textit{weight vector} $\mathbf{w} \doteq (w_1, w_2, \dots, w_d)^T$ for all $s \in \mathcal{S}$. $\mathbf{w}$ gets updated at each discrete $t = 0, 1, 2, 3, \dots$ with each new observation, and $\mathbf{w}_t$ denotes the weight vector at each step. We try to minimise the \textit{Mean Squared Value Error}, denoted $\overline{VE}$: $$\overline{VE} \doteq \sum_{s \in \mathcal{S}} \mu(s) \left[ v_\pi(s) - \hat{v}(s, \mathbf{w})\right].$$
 
-SDG methods minimise error on the observed samples by adjusting the weight vector after each vector by a small amount in the direction that would most reduce the error on that example: $$\mathbf{w}_{t+1} \doteq \mathbf{w}_t - \frac{1}{2} \alpha \nabla \left[ v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t)\right]^2,$$ where $\alpha$ is a positive step-size parameter.
+SDG methods minimise error on the observed samples by adjusting the weight vector after each vector by a small amount in the direction that would most reduce the error on that example: $$\begin{aligned} \mathbf{w}_{t+1} & \doteq \mathbf{w}_t - \frac{1}{2} \alpha \nabla_{\mathbf{w}} \left[ v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t) \right]^2 \\ & = \mathbf{w}_t + \alpha(v_\pi(S_t) - \hat{v}(S_t, \mathbf{w}_t)) \nabla_{\mathbf{w}} \hat{v}(S_t, \mathbf{w}_t),\end{aligned}$$ where $\alpha$ is a positive step-size parameter.
+
+In order to compute the ground-truth value function, $v_\pi(S_t)$, we substitute it with a target.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{images/substituting-v.png}
+  \caption{Slide taken from Chris Wilcock's presentation on function approximation.}
+  \label{fig:substituting-v}
+\end{figure}
+
+To learn the optimal behaviour so we have our agents learn the best way to play a game, we need the action-value function, which we approximate exactly the same as for the value function, with $\hat{q}(S, A, \mathbf{w}) \simeq q_\pi(S,A)$  
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{images/substituting-q.png}
+  \caption{Slide taken from Chris Wilcock's presentation on function approximation.}
+  \label{fig:substituting-q}
+\end{figure}
+
+Since incremental methods (learning from each experience) are not sample efficient and lead to rapidly forgetting rare experiences that would be useful alter on, we introduce a experience replay, or replay buffer. This stores experiences (such as the last 50k experiences) and reuses them. These can be sampled uniformly or prioritised to replay important transitions more frequently.
 
 \section{Deep Reinforcement Learning}
 
