@@ -48,7 +48,7 @@ Artificial intelligence, machine learning, reinforcement learning, deep learning
 
 \newpage
 \section{Introduction (2-3 pages)}
-This project is about reinforcement learning and transfer learning. The project involves developing a reinforcement learning algorithm to learn to perform successfully in some environment. The project also involves investigating how transfer learning lets the algorithm store knowledge and apply it --- to learn to perform successfully in a different but related environment.
+This project is about reinforcement learning and transfer learning. The project involves developing a reinforcement learning algorithm to learn to perform successfully in some environment. Additionally, the project involves investigating how transfer learning lets the algorithm store knowledge and apply it --- to learn to perform successfully in a different but related environment.
 
 \subsection{Background} 
 \subsubsection{Reinforcement learning}
@@ -57,7 +57,7 @@ Reinforcement learning is the class of problems concerned with an agent learning
 There are algorithms that act as agents that solve reinforcement learning problems. These reinforcement learning algorithms can solve problems in physical settings, such as driving cars, or in virtual settings, such as playing games. We can treat these algorithms as functions that takes as input observations and outputs actions. Examples of observations are the video from a camera attached to a self-driving car or the positions of pieces on a chessboard in an online match. Examples of corresponding actions are to turn the steering wheel in one direction or to move a chess piece. The goal of the algorithm is to learn which actions are the best to take given some observations. How good an action given an observation is can be measured by how likely taking the action is to lead to the desired behaviour. For an algorithm that drives cars, the desired behaviour might be to drive safely, and so the algorithm would know to stop at a red traffic light. Whereas, for an algorithm that plays chess, the desired behaviour might be to win, and so the algorithm would know to take the opponent's king. The algorithm is learning a mapping, from actions and observations to values, to inform its decision-making. This mapping is initially unknown, but improves the more the algorithm interacts with its environment --- the same way one gets better with practice at driving or playing chess. For relatively complex problems, there may not be an optimal solution, such as behaviour that guarantees no accidents or that always wins, and so the best the algorithm can do is to approximate an optimal solution. 
 
 \subsubsection{Transfer learning}
-Transfer learning is the application of knowledge gained while solving one problem to solve a different but related problem \cite{2010}. An example is an agent who has learned to walk a tightrope (solving one problem) applying their balancing ability (the knowledge gained) to learn to surf (a different but related problem). By reusing knowledge from solving past problems, it is expected that solving a different but related problem will be more efficient than it would be without the prior knowledge. As in the example, a tightrope walker should learn to balance on a surfboard more easily and more quickly, due to their knowledge of balancing on a rope, than someone without the same acquired knowledge of balancing. 
+Transfer learning is the application of knowledge gained while solving one problem to solve a different but related problem \cite{2010}. An example is an agent who has learned to walk a tightrope (solving one problem) applying their balancing ability (the knowledge gained) to learn to surf (a different but related problem). By reusing knowledge gained from solving past problems, it is expected that solving a different but related problem will be more efficient than it would be without the prior knowledge. As in the example, a tightrope walker should learn to balance on a surfboard more easily and more quickly, due to their knowledge of balancing on a rope, than someone without the same acquired knowledge of balancing. 
 
 In transfer learning for reinforcement learning algorithms, the knowledge gained that can be applied is the agent's policy. The policy is the set of rules that determine an agent's behaviour (which can be informed by the mapping mentioned in the previous section). An example of a policy for an agent playing the video game Breakout might be to move the paddle randomly. Another, better policy might be to move the paddle in the direction of the projectile, so as to deflect it. The policy of interest, however, is one that the reinforcement learning algorithm developed itself while learning to play. Depending on the architecture of the algorithm, the policy could be a neural network, so that developing the policy equates to training the network. An example of transfer learning for reinforcement learning algorithms, then, could be to apply the trained neural network, or part of it, that was trained in the agent that learned to play Breakout, to a new agent that is learning to play a different but related game, such as Pong. In both games, players must move a paddle to deflect a projectile. The hope is that an abstraction of this concept has been learned in the network, which gets translated and used to make learning other games with similar features more efficient.
 
@@ -70,33 +70,37 @@ There is one drawback to existing reinforcement learning algorithms: they are mo
 \subsubsection{Aims}
 The aim of the project is to develop a working reinforcement learning system that can play one or more Atari games successfully, and can apply the knowledge gained to learn to play another different Atari game. For example, the system might be composed of one agent which has already learned to play Breakout, and another agent which is about to learn to play Pong; the design of the system lets the knowledge from the Breakout agent be applied by the Pong agent to make its own learning more efficient. Another example system might be composed of three agents which have already learned to play each of Breakout, Pacman, and Space Invaders respectively, and another agent learning Pong as before; again, the system lets the knowledge from the Breakout agent, Pacman agent, and Space Invaders agent be applied by the Pong agent to make its own learning more efficient. We refer to an agent applying knowledge gained by other agents as \textit{pre-training}. The question arises: \textit{What is the benefit of pre-training?}. More specifically, \textit{How much faster does an agent with pre-training learn a new game than one without? Twice as fast? Three times? Or not at all?}, and, \textit{Is pre-training on more games more beneficial?}. 
 
-To assist in achieving the aim, we propose two research questions: \textit{How large does the model need to be for the pre-training to be useful?} and \textit{How does the size of the effect change when the amount of data is reduced by 10x? By 100x?}.
+To address the aim, the objectives for the project were divided into three categories: minimum, intermediate, and advanced. 
 
-To address this aim, the objectives for the project were divided into three categories: minimum, intermediate, and advanced. 
+The minimum objective involves developing a reinforcement learning algorithm that learns to perform successfully in its environment. A suitable problem to start with is balancing a pole on a cart (virtually). The algorithm should then be adapted to have agents learn to maximise score in Atari games.
 
-The minimum objectives were to train 2 good policies for 2 Atari games, and generate 10,000 trajectories of 1,000 steps each from the policy for each game.
+The intermediate objective involves transfer learning by reusing weights in the network. The reinforcement learning algorithm should train two good agents for two Atari games. A third agent should then be trained on one game, with its network weights initialised to that of the agent trained on the other game. The third agent's performance should be compared with the agent trained on the same game to assess the benefit of pre-training.
 
-The intermediate objectives were to fit a generative model to the trajectories produced by 1 of the games, and transfer the model to the 2nd game.
+The advanced objective involves transfer learning by training on the behaviour of one or more trained agents. We should train $n$ agents for $n$ Atari games, and generate 10,000 trajectories of 1,000 steps each from the trained agent for each game. We should then build a generative model and fit it to the trajectories produced by $n-1$ of the games, before transferring the model to the $n$th game. Similarly, the generative model's performance should be compared with the agent trained on the same game to assess the benefit of pre-training.
 
-The advanced objectives were to train n good policies for n Atari games, and fit a generative model to the trajectories produced by n-1 of the games, then transfer that model to the nth game.
+To quantify the benefit of pre-training, we propose two research questions: \textit{How large does the model need to be for the pre-training to be useful?}, and, \textit{How does the size of the effect change when the amount of data is reduced by 10x? By 100x?}.
 
 \subsubsection{Achievements}
-What was achieved is as follows:
-\begin{itemize}
-    \item We developed a reinforcement learning algorithm that learned to perform successfully in some environment.
-    \item We applied the trained algorithm to a different but related environment and measured its performance.
-\end{itemize}
+We achieved the minimum and intermediate objectives of the project. We developed a minimal PPO algorithm that learned to perform successfully in the CartPole environment. By introducing a convolutional neural network (CNN) to the policy and value networks, the algorithm was able to learn to perform successfully in the environments Pong and Breakout. By reusing the weights in the network of one of the agents, another agent was trained and its performance analysed. We observed there to indeed be a benefit of pre-training. The greater the amount of data, the greater the benefit there was, as measured by three metrics: jump-start performance, accumulated rewards, and final performance. The advanced objective was not able to be completed due to the challenges brought about by external limiting factors, such as Covid-19. 
 
 \newpage
-\section{Related work (2-3 pages)}
+\section{Related work (2 pages)}
 \label{section:related-work}
 Most modern reinforcement learning algorithms incorporate the use of deep neural networks \cite{}. This is because \dots. Reinforcement learning algorithms can be partitioned into two groups: model-free and model-based. In this paper, we focus on model-free algorithms. Model-free algorithms can be further partitioned into two types: policy optimisation and Q-learning. Some algorithms are a combination. We focus on two algorithms: deep Q-learning (DQN) and proximal policy optimisation (PPO). We cover these because \dots. They are relevant because \dots. 
 
-\begin{itemize}
-    \item Reinforcement learning \dots [critical analysis: issues, lead to] \dots
-    \item Deep reinforcement learning \dots [critical analysis: issues, lead to] \dots
-    \item Transfer learning \dots [critical analysis: issues, lead to] \dots
-\end{itemize}
+\subsection{Q-learning}
+[critical analysis: issues, lead to]
+
+\subsection{Deep Q-learning}
+[critical analysis: issues, lead to]
+
+\subsection{Policy optimisation}
+[critical analysis: issues, lead to]
+
+\subsection{Proximal policy optimisation}
+[critical analysis: issues, lead to]
+
+\subsection{Transfer learning}
 
 \begin{itemize}
     \item This relates to my research question because \dots 
