@@ -86,7 +86,12 @@ We achieved the minimum and intermediate objectives of the project. We developed
 \newpage
 \section{Related work (2 pages)}
 \label{section:related-work}
-Most modern reinforcement learning algorithms incorporate the use of deep neural networks \cite{}. This is because \dots. Reinforcement learning algorithms can be partitioned into two groups: model-free and model-based. In this paper, we focus on model-free algorithms. Model-free algorithms can be further partitioned into two types: policy optimisation and Q-learning. Some algorithms are a combination. We focus on two algorithms: deep Q-learning (DQN) and proximal policy optimisation (PPO). We cover these because \dots. They are relevant because \dots. 
+There have been several academic achievements in developing reinforcement learning algorithms that address challenging sequential decision-making problems, with  potential for real-world applications. For an agent to learn a good behaviour, the agent has to make decisions in an environment to optimise a given notion of cumulative rewards. We focus on existing solutions that achieve this by value-based methods or policy gradient methods. Other approaches include those that combine the two methods, or are model-based.
+
+\subsection{Value-based methods}
+One of the simplest and most popular value-based algorithms to define a policy is Q-learning. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair \cite{DBLP:journals/corr/abs-1811-12560}. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function, which has a unique solution. This idea was expanded to involve approximations of the Q-values \cite{10.5555/2998828.2998976}, and Q-values parameterised with a neural network where the parameters are updated \cite{10.1007/11564096_32}. More recent approaches use deep neural networks as function approximators \cite{Mnih2015}. Traditionally, the optimal policy was found by finding an exact solution; whereas, modern approaches approximate the optimal policy by using states as input to neural networks. 
+
+
 
 \subsection{Q-learning}
 [critical analysis: issues, lead to]
