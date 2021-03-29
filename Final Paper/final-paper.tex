@@ -29,7 +29,7 @@
 \end{flushleft}
 
 \begin{flushleft}
-{\bf Method} --- The method is to implement a modern reinforcement learning algorithm and train it on two selected games. Once the agent is performing well in the environment, we save a video of it playing, and use the video as the basis of pre-training of another agent, which we then evaluate on the test game.    
+{\bf Method} --- Classic-control and Atari 2600 environments provided by OpenAI Gym are used to train an initial implementation of the proximal policy optimisation (PPO) algorithm followed by a subsequent implementation which uses a deep convolutional neural network. In addition to this, network weights from an agent trained on Breakout were used as initial weights for another agent training on Pong, after which its performance was evaluated in comparison to one without pre-training. 
 \end{flushleft}
 
 \begin{flushleft}
@@ -43,7 +43,7 @@
 \end{abstract}
 
 \begin{keywords}
-Artificial intelligence, machine learning, reinforcement learning, deep learning, transfer learning.
+Artificial intelligence, machine learning, reinforcement learning, deep learning, transfer learning, game-playing.
 \end{keywords}
 
 \newpage
