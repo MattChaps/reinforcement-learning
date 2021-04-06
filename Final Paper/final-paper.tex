@@ -84,7 +84,7 @@ To quantify the benefit of pre-training, we propose two research questions: \tex
 We achieved the minimum and intermediate objectives of the project. We developed a minimal PPO algorithm that learned to perform successfully in the CartPole environment. By introducing a convolutional neural network (CNN) to the policy and value networks, the algorithm was able to learn to perform successfully in the environments Pong and Breakout. By reusing the weights in the network of one of the agents, another agent was trained and its performance analysed. We observed there to indeed be a benefit of pre-training. The greater the amount of data, the greater the benefit there was, as measured by three metrics: jump-start performance, accumulated rewards, and final performance. The advanced objective was not able to be completed due to the challenges brought about by external limiting factors, such as Covid-19. 
 
 \newpage
-\section{Related work (2 pages)}
+\section{Related work (3 pages)}
 \label{section:related-work}
 There have been several academic achievements in developing reinforcement learning algorithms that address challenging sequential decision-making problems, with  potential for real-world applications. For an agent to learn a good behaviour, the agent has to make decisions in an environment to optimise a given notion of cumulative rewards. We focus on existing solutions that achieve this by value-based methods or policy gradient methods. Other approaches include those that combine the two methods, or are model-based.
 
@@ -106,37 +106,32 @@ the Q-value function).
 \end{itemize}
 
 \newpage
-\section{Solution (4-7 pages)}
-In order to investigate the usefulness of pre-training for reinforcement learning algorithms , a specific workflow would need to be implemented. Firstly, a reinforcement learning algorithm would be used to train several agents in different environments. Secondly, trajectories of the trained agents would be generated. Thirdly, a generative model would be used to train on these trajectories. Finally, the generative model would be fine-tuned on the testing environment. Instead of training on Atari games straightaway, we built a model to train on cart-pole. This enabled the production of an intermediate solution to our problem. The downside of this solution is that it cannot work with complex problems requiring visual inputs. 
+\section{Solution (5 pages)}
+\subsection{Specification}
+In order to develop a reinforcement learning system that can successfully operate in its environment, the system must satisfy certain requirements. First, the system would initialise an environment and the agent in it. Second, a reinforcement learning algorithm would control the agent and interact with the environment by making observations and taking actions. Third, the environment would respond with a reward for each action taken by the agent. Finally, the algorithm would process the observations, actions, and rewards to iteratively improve the agent's behaviour.  
 
-[Bridging paragraph] Rather than implement everything from scratch, build on frameworks to allow focus on algorithm design \dots
+Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally,   
 
-The solution is to implement the PPO algorithm and test it on OpenAI Gym. Then, the network weights are saved and applied to a different environment. 
-
-\subsection{Specification and design}
-\subsubsection{Specification}
-First, the solution must be able to load a virtual environment. 
-
-Second, the solution must be able to interact with the environment, by taking actions and making observations. The solution should indicate the actions available to be taken by an agent. When the agent takes an action, the environment should change, and the new state of the environment should be able to be observed.  
-
-Third, the solution should indicate the reward achieved by the previous action.
-
-Fourth, the solution should indicate when the environment needs resetting. 
-
-\subsubsection{Design}
-The design of the proximal policy optimisation algorithm is as follows: \dots 
-
-The architectural diagram for this is /dots
+\subsection{Design}
+\begin{itemize}
+    \item The algorithm chosen to be implemented was proximal policy optimisation (PPO).
+    \item The pseudocode for this algorithm is as follows.
+    \item For the simple version, the algorithm uses a neural network function approximator.
+    \item For the Atari version, the algorithm uses a convolutional neural network. 
+    \item The architectural diagram for the convolutional neural network is as follows. 
+\end{itemize}
 
 \subsection{Implementation issues}
 \begin{itemize}
-    \item The features of the implementation process were \dots
+    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware issues. The architecture was also slightly different. 
 \end{itemize}
 
 \subsection{Tools used}
 \begin{itemize}
-    \item The tools used were \dots
-    \item The algorithms used were \dots
+    \item Rather than implement everything from scratch, we built on frameworks to allow focus on algorithm design.
+    \item OpenAI Gym, arcade learning environment
+    \item Adam optimiser
+    \item PyTorch
 \end{itemize}
 
 \subsection{Verification and validation}
@@ -160,7 +155,7 @@ The architectural diagram for this is /dots
 \end{itemize}
 
 \newpage
-\section{Results (2-3 pages)}
+\section{Results (3 pages)}
 [Bridging paragraph]
 \subsection{Evaluation method}
 \begin{itemize}
@@ -178,7 +173,7 @@ The architectural diagram for this is /dots
 \end{itemize}
 
 \newpage
-\section{Evaluation (1-2 pages)}
+\section{Evaluation (3 pages)}
 [Bridging paragraph]
 \subsection{Suitability of the approach (more SE, maybe exclude?)}
 \begin{itemize}
