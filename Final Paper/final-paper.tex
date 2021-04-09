@@ -20,16 +20,16 @@
 
 \begin{abstract}
 
-\begin{flushleft}
-{\bf Background} --- Reinforcement learning, concerned with how agents learn behaviour through trial-and-error interactions with a dynamic environment, has proven to be a successful technique of achieving at least human-level performance by machines. Transfer learning is the application of knowledge gained while solving one problem to solve a different but related problem, and is a technique that allows reinforcement learning agents to adapt to new environments.
+\begin{flushleft} 
+{\bf Background} --- The recent success of reinforcement learning systems solving visually complex tasks, such as playing video games, means that such systems have potential for real-world applications, such as self-driving cars. To improve these systems, there is ongoing research into developing ways to apply knowledge gained from previous tasks to solve new tasks, such as from driving in a simulation to driving in the real world.
 \end{flushleft}
 
 \begin{flushleft}
-{\bf Aims} --- The aim of this project is to investigate the usefulness of transfer learning in a modern reinforcement system, where environments are Atari video games. We seek to quantify the benefit of pre-training on a game on an agent's ability to learn to play another game with similar mechanics. 
+{\bf Aims} --- The aim of this project is to develop an understanding of reinforcement learning and its intersection with transfer learning by investigating the use of deep neural networks and pre-training. We aim to assess to what extent a current state-of-the-art architecture benefits from pre-training in the context of learning to play Atari video-games.
 \end{flushleft}
 
 \begin{flushleft}
-{\bf Method} --- The method is to implement a modern reinforcement learning algorithm and train it on two selected games. Once the agent is performing well in the environment, we save a video of it playing, and use the video as the basis of pre-training of another agent, which we then evaluate on the test game.    
+{\bf Method} --- Classic-control and Atari 2600 environments provided by OpenAI Gym are used to train an initial implementation of the proximal policy optimisation (PPO) algorithm followed by a subsequent implementation which uses a deep convolutional neural network. In addition to this, network weights from an agent trained on Breakout were used as initial weights for another agent training on Pong, after which its performance was evaluated in comparison to one without pre-training. 
 \end{flushleft}
 
 \begin{flushleft}
@@ -43,7 +43,7 @@
 \end{abstract}
 
 \begin{keywords}
-Artificial intelligence, machine learning, reinforcement learning, deep learning, transfer learning.
+Artificial intelligence, machine learning, reinforcement learning, deep learning, transfer learning, game-playing.
 \end{keywords}
 
 \newpage
