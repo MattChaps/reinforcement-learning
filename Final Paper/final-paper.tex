@@ -108,24 +108,17 @@ To develop a reinforcement learning system that can successfully operate in its 
 Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally, the generative model would control the agent in the new environment.  
 
 \subsection{Design}
-The algorithm chosen to be implemented was proximal policy optimisation (PPO). PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. 
+The algorithm chosen to be implemented was proximal policy optimisation (PPO). PPO is an on-policy algorithm, and PPO can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
 
-There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
+\textbf{PPO-Penalty} approximately solves a KL-constrained update like TRPO, but penalizes the KL-divergence in the objective function instead of making it a hard constraint, and automatically adjusts the penalty coefficient over the course of training so that it’s scaled appropriately.
 
-PPO-Penalty approximately solves a KL-constrained update like TRPO, but penalizes the KL-divergence in the objective function instead of making it a hard constraint, and automatically adjusts the penalty coefficient over the course of training so that it’s scaled appropriately.
+\textbf{PPO-Clip} doesn’t have a KL-divergence term in the objective and doesn’t have a constraint at all. Instead relies on specialized clipping in the objective function to remove incentives for the new policy to get far from the old policy.
 
-PPO-Clip doesn’t have a KL-divergence term in the objective and doesn’t have a constraint at all. Instead relies on specialized clipping in the objective function to remove incentives for the new policy to get far from the old policy.
-
-PPO is an on-policy algorithm.
-PPO can be used for environments with either discrete or continuous action spaces.
-
-PPO-clip updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ typically taking multiple steps of (minibatch) SDG to maximise the objective. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $/epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
+PPO-clip updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ typically taking multiple steps of (minibatch) SDG to maximise the objective. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $\epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
 
 A simplified version is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$
 
-To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima.
-
-To figure out what intuition to take away from this, let's look at a
+To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima. To figure out what intuition to take away from this, let's look at a
 single state-action pair \((s,a)\), and think of cases.
 
 \textbf{Advantage is positive}: Suppose the advantage for that
@@ -165,33 +158,13 @@ policy does not benefit by going far away from the old policy}.
 What we have seen so far is that clipping serves as a regularizer by
 removing incentives for the policy to change dramatically, and the
 hyperparameter \(\epsilon\) corresponds to how far away the new policy
-can go from the old while still profiting the objective.
-
-You Should Know
-
-While this kind of clipping goes a long way towards ensuring reasonable
+can go from the old while still profiting the objective. While this kind of clipping goes a long way towards ensuring reasonable
 policy updates, it is still possible to end up with a new policy which
 is too far from the old policy, and there are a bunch of tricks used by
 different PPO implementations to stave this off. In our implementation
 here, we use a particularly simple method: early stopping. If the mean
 KL-divergence of the new policy from the old grows beyond a threshold,
 we stop taking gradient steps.
-
-When you feel comfortable with the basic math and implementation
-details, it's worth checking out other implementations to see how they
-handle this issue!
-
-\subsubsection{Exploration vs.
-Exploitation}\label{exploration-vs.-exploitation}
-
-PPO trains a stochastic policy in an on-policy way. This means that it
-explores by sampling actions according to the latest version of its
-stochastic policy. The amount of randomness in action selection depends
-on both initial conditions and the training procedure. Over the course
-of training, the policy typically becomes progressively less random, as
-the update rule encourages it to exploit rewards that it has already
-found. This may cause the policy to get trapped in local optima.
-
 
 \begin{algorithmic}[1]
     \STATE Input: initial policy parameters $\theta_0$, initial value function parameters $\phi_0$
@@ -215,15 +188,63 @@ found. This may cause the policy to get trapped in local optima.
     \ENDFOR
 \end{algorithmic}
 
+\subsection{Implementation features}
 \subsubsection{CartPole}
 For the simple version, we used a fully connected network.
 
-\subsubsection{Atari}
-For the Atari version, we used a deep convolutional neural network.
-    
-The architectural diagram for the convolutional neural network is as follows. 
+DNN are an extension of the traditional artificial neural network, which is a
+technique for pattern recognition which attempts to replicate the function of neurons in the
+human brain. A network is composed of many elements called perceptrons, each of which
+simulates the activity of a neuron in the human brain. Each perceptron takes an input, and
+produces an output by applying its activation function to the input, which is then typically
+sent as input to another perceptron via a weighted edge. Typically, perceptrons are organized
+into layers, with a feed-forward architecture, meaning that the output of a perceptron in a
+given layer is only sent to the next layer in the network. Each perceptron usually has
+connections to every perceptron in the previous layer. Consequently, in a given network there 
 
-\subsection{Implementation features}
+would typically be an input layer, an output layer, and a number of hidden layers between the
+input and output layers. These networks learn by computing the output for a given input, and
+then updating the connection weights depending on the difference between the actual output
+and the expected output, in order to better meet the expected output if a similar input is
+received (LeCun et al. 1990). We call this supervised learning - feeding data into the network
+along with labels which contain the expected output. With each training iteration, the network
+becomes better at classifying that specific input by adjusting connection weights – the
+network learns how it should classify each input.
+A deep neural network only differs from a standard neural network in that there are a
+greater number of hidden layers between the input and output layer of the network. Since
+each layer of perceptrons trains on the set of features which are based on the output of the
+previous layer, the deeper the network (i.e. the more layers it has), the more complex the
+features it can recognize. Therefore, when we process complex data such as images, DNN
+tend to perform better than standard neural networks. 
+
+\subsubsection{Atari}
+This is how DNN work with a general input, however to process complex images we
+must make use of a more sophisticated structure. Due to images having three dimensions
+(width, height, and depth), they contain a huge number of parameters, and so processing an
+image with a standard network would be very inefficient. To enable neural networks to
+efficiently process images, we use something called convolutional neural networks (LeCun et
+al. 1998), in which the responses of each perceptron are produced by performing a
+convolution operation upon the image. This allows us to arrange perceptrons in three
+dimensions (width, height, and depth), and therefore massively reduce the number of
+parameters required to process an image.
+There are typically 3 main types of layers that are used to build DCNN, which will be
+used throughout our solution. Convolutional layers perform convolution by sliding a filter
+across the image and computing the dot product of the filter with the image values at each
+point, this produces a two-dimensional activation map which gives the response of the filter
+at each point in the image. Many of these filters can be present in a single layer, each
+producing a separate activation map. As the network is trained, it will learn filters that
+activate when they see specific features within the image, such as circular patterns or vertical
+edges. Convolutional layers are the backbone of the convolutional neural network. Pooling
+layers reduce the dimensions of their input by separating the input into grids, and performing
+a down-sampling operation upon each grid. This operation is usually the max function, which
+returns the maximum of a set of numbers. These layers reduce the number of parameters in
+the network, and help prevent overfitting. Fully-connected layers typically occur after the
+convolutional and pooling layers, and have full connections to all activations in the previous
+layer, similar to a layer in a basic neural network. They allow us to shape the output of the
+network to fit the number of classes in the problem, which in our case is 2.
+All networks presented in our solution are DCNN with varying structures.
+
+
 \begin{itemize}
     \item We used an architecture that shares parameters. We don't have an entropy term.
     \item We used clipped surrogate objective.
@@ -238,6 +259,16 @@ The architectural diagram for the convolutional neural network is as follows.
 \end{itemize}
 
 \subsection{Tools used}
+We used the Python programming language. This was because Python has numerous libraries for machine learning, which support deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow.
+
+We used the PyTorch library. This was because PyTorch is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications ot them, without the additional complexity of programming in low-level PyTorch.
+
+We used OpenCV and Scikit-learn for image manipulation, so we did not have to implement pre-processing techniques from scratch.
+
+We used Gym, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. We chose this so we could focus on the algorithm. Gym provides a collection of environments. Environments include Atari games, control theory problems, and physics simulations. The environments have a shared interface, which allows us to write general algorithms.
+
+We used Google Colab, which Python code to be written and executed in the browser. This was because it doesn't require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC). We chose not to use this because we had no remote server experience or job queuing system experience (such as SLURM).
+
 \begin{itemize}
     \item Rather than implement everything from scratch, we built on frameworks to allow focus on algorithm design.
     \item OpenAI Gym, arcade learning environment
@@ -299,6 +330,14 @@ PPO methods are significantly simpler to implement, and empirically seem to perf
     \item The limitations of the algorithm were \dots
     \item The lessons learnt were \dots
 \end{itemize}
+
+Limitation: PPO trains a stochastic policy in an on-policy way. This means that it
+explores by sampling actions according to the latest version of its
+stochastic policy. The amount of randomness in action selection depends
+on both initial conditions and the training procedure. Over the course
+of training, the policy typically becomes progressively less random, as
+the update rule encourages it to exploit rewards that it has already
+found. This may cause the policy to get trapped in local optima.
 
 \subsection{Project organisation}
 \begin{itemize}
