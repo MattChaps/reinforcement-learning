@@ -4,6 +4,7 @@
 \usepackage{durhampaper}
 \usepackage{harvard}
 \usepackage{amssymb,amsmath}
+\usepackage{algorithm}
 \usepackage{algorithmic}
 
 \citationmode{abbr}
@@ -50,7 +51,7 @@ Artificial intelligence, machine learning, reinforcement learning, deep learning
 \end{keywords}
 
 \newpage
-\section{Introduction (2-3 pages)}
+\section{Introduction}
 This project is about reinforcement learning and transfer learning. The project involves developing a reinforcement learning algorithm to learn to perform successfully in some environment. Additionally, the project involves investigating how transfer learning lets the algorithm store knowledge and apply it --- to learn to perform successfully in a different but related environment.  
 
 \subsection{Background} 
@@ -62,38 +63,39 @@ There are algorithms that act as agents that solve reinforcement learning proble
 \subsubsection{Transfer learning}
 Transfer learning is the application of knowledge gained while solving one problem to solve a different but related problem \cite{2010}. An example is an agent who has learned to walk a tightrope (solving one problem) applying their balancing ability (the knowledge gained) to learn to surf (a different but related problem). By reusing knowledge gained from solving past problems, it is expected that solving a different but related problem will be more efficient than it would be without the prior knowledge. As in the example, a tightrope walker should learn to balance on a surfboard more easily and more quickly, due to their knowledge of balancing on a rope, than someone without the same acquired knowledge of balancing. 
 
-In transfer learning for reinforcement learning algorithms, the knowledge gained that can be applied is the agent's policy. The policy is the set of rules that determine an agent's behaviour (which can be informed by the mapping mentioned in the previous section). An example of a policy for an agent playing the video game Breakout might be to move the paddle randomly. Another, better policy might be to move the paddle in the direction of the projectile, so as to deflect it. The policy of interest, however, is one that the reinforcement learning algorithm developed itself while learning to play. Depending on the architecture of the algorithm, the policy could be a neural network, so that developing the policy equates to training the network. An example of transfer learning for reinforcement learning algorithms, then, could be to apply the trained neural network, or part of it, that was trained in the agent that learned to play Breakout, to a new agent that is learning to play a different but related game, such as Pong. In both games, players must move a paddle to deflect a projectile. The hope is that an abstraction of this concept has been learned in the network, which gets translated and used to make learning other games with similar features more efficient.
+In transfer learning for reinforcement learning algorithms, the knowledge gained that can be applied is the agent's policy. The policy is the set of rules that determine an agent's behaviour (which can be informed by the mapping mentioned in the previous section). An example of a policy for an agent playing the video game Breakout might be to move the paddle randomly. Another, better policy might be to move the paddle in the direction of the projectile, so as to deflect it. The policy of interest, however, is one that the reinforcement learning algorithm developed itself while learning to play. Depending on the architecture of the algorithm, the policy could be a neural network, so that developing the policy equates to training the network. An example of transfer learning for reinforcement learning algorithms, then, could be to apply the trained neural network, or part of it, that was trained in the agent that learned to play Breakout, to a new agent that is learning to play a different but related game, such as Pong. The hope is that the network learns abstractions of the games' mechanics, which gets translated and used to make learning other games with similar features more efficient.
 
-\subsubsection{Context}
+\subsection{Context}
 Reinforcement learning algorithms have proven to be successful at achieving at least human-level performance in some tasks. A historical example is TD-Gammon: a program that achieved a level of play just slightly below that of the top human backgammon players of the time \cite{}. Another example that is more recent is AlphaGo: a program that is claimed to be arguably the strongest Go player in history \cite{}. In the future, an example might be self-driving cars. As computing power increases and new algorithms continue to be discovered \cite{}, reinforcement learning research will only grow in popularity, and so it is important to investigate it.
 
-There is one drawback to existing reinforcement learning algorithms: they are most effective when there are no limits to the trial-and-error interactions an agent can make with its environment while learning. This is not an issue in virtual settings, but could cause problems in physical settings. For example, a computer chess program does not feel fatigue and is able to compute millions of games in minutes. On the other hand, an algorithm learning from scratch to drive a car will likely crash on its first run. For reasons such as not wanting to incur a repair cost or wasting time, it is preferable to be confident that a self-driving car has a reasonable ability to drive before testing it. To build confidence that a reinforcement learning algorithm will perform reasonably successfully in a real-world environment, we could first train the algorithm in a similar virtual environment, such as a simulation. Transfer learning is a key component of this process, since the algorithm's subsequent success depends critically on its ability to transfer the knowledge gained from the virtual domain and apply it to the real domain. For reasons such as this, transfer learning has become a crucial technique to build better reinforcement learning systems \cite{}. 
+There is one drawback to existing reinforcement learning algorithms: they are most effective when there are no limits to the trial-and-error interactions an agent can make with its environment while learning. This is not an issue in virtual settings, but could cause problems in physical settings. For example, a computer chess program does not feel fatigue and is able to compute millions of games in minutes. On the other hand, an algorithm learning from scratch to drive a car will likely crash on its first run. For reasons such as not wanting to incur a repair cost or wasting time, it is preferable to be confident that a self-driving car has a reasonable ability to drive before testing it. To build confidence that a reinforcement learning algorithm will perform reasonably successfully in a real-world environment, we could first train the algorithm in a similar virtual environment, such as a simulation. We refer to this process as \textit{pre-training}. Transfer learning is a key component of this process, since the algorithm's subsequent success depends critically on its ability to transfer the knowledge gained from the virtual domain and apply it to the real domain. For reasons such as this, transfer learning has become a crucial technique to build better reinforcement learning systems \cite{}. 
 
 \subsection{Aims}
 The research question proposed is as follows: \textit{How much more efficiently do reinforcement learning agents with pre-training learn to play a different Atari game than those without?}. To address this research question, the objectives for this project were divided into three categories: minimum, intermediate, and advanced. 
 
 The minimum objectives were to establish a candidate reinforcement learning algorithm from the literature which would likely learn good policies for playing Atari games, and implement the algorithm minimally. This minimal algorithm should be used to train an agent in a relatively simple environment, such as CartPole \cite{}. In CartPole, the agent is required to prevent an upright pendulum attached to a cart from falling over, and is expected to \textit{solve} the environment by getting an average reward of 195.0 over 100 consecutive trials. The purpose of this objective was to establish a strong understanding of reinforcement learning algorithms, and build a foundational model for the remainder of the project.
 
-The intermediate objectives were to adapt the implemented reinforcement learning algorithm with a deep convolutional neural network and evaluate the benefit of pre-training by policy transfer. The adapted algorithm should be used to train two good agents for two Atari games, Breakout and Pong. In Breakout, the agent is required to break bricks with a ball and paddle \cite{}; whereas, in Pong, the agent is required to beat an opponent at table tennis with a ball and paddle \cite{}. Solving either environment requires maximising the final score. For Breakout and Pong, the trained agents should attain an average score that at least matches the popular benchmark of 401.2 and 18.9 respectively \cite{}. Then, the network weights from the trained Breakout agent should be used to initialise the network weights of a third agent learning Pong, or vice versa, and its performance evaluated against the other trained agent. The purpose of this objective was to understand how reinforcement learning algorithms can process pixels, and whether knowledge can be directly transferred across neural networks.
+The intermediate objectives were to adapt the implemented reinforcement learning algorithm with a deep convolutional neural network and evaluate the benefit of pre-training by policy transfer. The adapted algorithm should be used to train two good agents for two Atari games, Breakout and Pong. In Breakout, the agent is required to break bricks with a ball and paddle \cite{}; whereas, in Pong, the agent is required to beat an opponent at 2D table tennis with a ball and paddle \cite{}. Solving either environment requires maximising the final score. For Breakout and Pong, the trained agents should attain an average score that at least matches the popular benchmark of 401.2 and 18.9 respectively \cite{}. Then, the network weights from the trained Breakout agent should be used to initialise the network weights of a third agent learning Pong, or vice versa, and its performance evaluated against the other trained agent. The purpose of this objective was to understand how reinforcement learning algorithms can process pixels, and whether knowledge can be directly transferred across neural networks.
 
 The advanced objectives were to develop a novel architecture and workflow for pre-training an agent with multiple policies, and evaluate the effectiveness of this approach. The architecture would be a generative model, and would be required to learn from 10 agents trained on 10 different Atari games using the reinforcement learning algorithm implemented earlier. The generative model would then be used to train an agent to play an 11th Atari game, and its performance evaluated against an agent without pre-training. The purpose of this objective was to extend the current state of the art of transfer learning in reinforcement learning, and provide a solution to one of OpenAI's \textit{unsolved problems} \cite{}.
 
 \subsection{Achievements}
-We achieved the minimum and intermediate objectives of the project. We developed a minimal PPO algorithm that learned to perform successfully in the CartPole environment. By introducing a convolutional neural network (CNN) to the policy and value networks, the algorithm was able to learn to perform successfully in the environments Pong and Breakout. By reusing the weights in the network of one of the agents, another agent was trained and its performance analysed. We observed there to indeed be a benefit of pre-training. The greater the amount of data, the greater the benefit there was, as measured by three metrics: jump-start performance, accumulated rewards, and final performance. The advanced objective was not able to be completed due to the challenges brought about by external limiting factors, such as Covid-19. 
+% We achieved the minimum and intermediate objectives of the project. We developed a minimal PPO algorithm that learned to perform successfully in the CartPole environment. By introducing a convolutional neural network (CNN) to the policy and value networks, the algorithm was able to learn to perform successfully in the environments Pong and Breakout. By reusing the weights in the network of one of the agents, another agent was trained and its performance analysed. We observed there to indeed be a benefit of pre-training. The greater the amount of data, the greater the benefit there was, as measured by three metrics: jump-start performance, accumulated rewards, and final performance. The advanced objective was not able to be completed due to the challenges brought about by external limiting factors, such as Covid-19. 
 
 \newpage
-\section{Related work (3 pages)}
+\section{Related work}
 \label{section:related-work}
 There have been several academic achievements in developing reinforcement learning algorithms that address challenging sequential decision-making problems, with  potential for real-world applications. For an agent to learn a good behaviour, the agent has to make decisions in an environment to optimise a given notion of cumulative rewards. We focus on existing solutions that achieve this by value-based methods or policy gradient methods. Other approaches include those that combine the two methods, or are model-based.
 
+There has also been similar successes in transfer learning for reinforcement learning \dots
+
 \subsection{Value-based methods}
-The value-based class of algorithms aims to build a value function,
-which subsequently lets us define a policy. One of the simplest and most popular value-based algorithms is the Q-learning algorithm \cite{Watkins1992}. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function \cite{R-352-PR}, which has a unique solution under certain conditions. This idea was expanded to involve approximating the Q-values from experiences gathered \cite{10.5555/2998828.2998976}, and parametrising the Q-values with a neural network whose parameters are updated by stochastic gradient descent (or a variant) by maximising a loss function \cite{10.1007/11564096_32}. A breakthrough approach used deep convolutional neural networks and a replay memory to play Atari games by learning from pixels and a wide range of past experiences; this approach was the deep Q-network (DQN) algorithm \cite{DBLP:journals/corr/MnihKSGAWR13}. More recent approaches made improvements to the DQN algorithm, such as duelling DQN \cite{DBLP:journals/corr/WangFL15} and double DQN \cite{DBLP:journals/corr/HasseltGS15}. Rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} is a combination of the many improvements to the DQN algorithm. For simple environments, a unique solution to the optimal Q-value function may be found; whereas, for complex environments, such as video games, modern approaches use neural networks to approximate the Q-values, which are then used to define a policy. 
+The value-based class of reinforcement learning algorithms aims to build a value function, which subsequently lets us define a policy. One of the simplest and most popular value-based algorithms is the Q-learning algorithm \cite{Watkins1992}. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function \cite{R-352-PR}, which has a unique solution under certain conditions. This idea was expanded to involve approximating the Q-values from experiences gathered \cite{10.5555/2998828.2998976}, and parametrising the Q-values with a neural network whose parameters are updated by stochastic gradient descent (or a variant) by maximising a loss function \cite{10.1007/11564096_32}. A breakthrough approach used deep convolutional neural networks and a replay memory to play Atari games by learning from pixels and a wide range of past experiences; this approach was the deep Q-network (DQN) algorithm \cite{DBLP:journals/corr/MnihKSGAWR13}. More recent approaches made improvements to the DQN algorithm, such as duelling DQN \cite{DBLP:journals/corr/WangFL15} and double DQN \cite{DBLP:journals/corr/HasseltGS15}. Rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} is a combination of the many improvements to the DQN algorithm. For simple environments, a unique solution to the optimal Q-value function may be found; whereas, for complex environments, such as video games, modern approaches use neural networks to approximate the Q-values, which are then used to define a policy. 
 
 One limitation with value-based approaches is that these types of algorithms are not well-suited to deal with large action spaces. In the Atari game Gravitar which has 18 actions, a DQN agent achieves a mean score of 306.7, compared to 2672 by a human \cite{Mnih2015}. 
 
 \subsection{Policy gradient methods}
-Policy gradient methods optimise a performance objective (typically the expected cumulative reward) by finding a good policy thanks to variants of stochastic gradient ascent with respect to the policy parameters. The gradient of the performance objective with respect to the policy parameters is called the policy gradient. The simplest policy gradient estimator is derived by using either the expected finite-horizon undiscounted return or expected infinite-horizon discounted return as the performance objective; this results in the REINFORCE algorithm \cite{Williams1992}. Deep deterministic policy gradient (DDPG) \cite{lillicrap2019continuous} extends this approach to deterministic policies to allow DQN algorithms to overcome the restriction of discrete actions. Another common approach is to use an actor-critic architecture that consists of two parts: an actor and a critic \cite{Konda2000}. The actor refers to the policy and the critic to the estimate of a value function (e.g., the Q-value function). In deep RL, both the actor and the critic can be represented by non-linear neural network function approximators \cite{mnih2016asynchronous}. More advanced approaches incorporate an advantage function to describe how much better or worse an action is than other actions on average (relative to the current policy) \cite{schulman2018highdimensional}, and use special constraints, expressed in terms of KL-Divergence, on how close the new and old policies are allowed to be \cite{DBLP:journals/corr/SchulmanLMJA15}. Proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} builds on the latter approach by relying on specialised clipping in the objective function. Typically, these approaches rely on tricks to keep new policies close to the old. 
+Policy gradient methods optimise a performance objective (typically the expected cumulative reward) by finding a good policy thanks to variants of stochastic gradient ascent with respect to the policy parameters. The gradient of the performance objective with respect to the policy parameters is called the policy gradient. The simplest policy gradient estimator is derived by using either the expected finite-horizon undiscounted return or expected infinite-horizon discounted return as the performance objective; this results in the REINFORCE algorithm \cite{Williams1992}. Deep deterministic policy gradient (DDPG) \cite{lillicrap2019continuous} extends this approach to deterministic policies to allow DQN algorithms to overcome the restriction of discrete actions. Another common approach is to use an actor-critic architecture that consists of two parts: an actor and a critic \cite{Konda2000}. The actor refers to the policy and the critic to the estimate of a value function (e.g., the Q-value function). In deep RL, both the actor and the critic can be represented by non-linear neural network function approximators \cite{mnih2016asynchronous}. More advanced approaches incorporate an advantage function to describe how much better or worse an action is than other actions on average (relative to the current policy) \cite{schulman2018highdimensional}, and use special constraints, expressed in terms of KL-Divergence \cite{kullback1951information}, on how close the new and old policies are allowed to be \cite{DBLP:journals/corr/SchulmanLMJA15}. Proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} builds on the latter approach by relying on specialised clipping in the objective function. Typically, these approaches rely on tricks to keep new policies close to the old. 
 
 One limitation of policy gradient methods is that it explores by sampling actions according to the latest version of its stochastic policy. The amount of randomness in action selection depends on both initial conditions and the training procedure. Over the course of training, the policy typically becomes progressively less random, as the update rule encourages it to exploit rewards that it has already found. This may cause the policy to get trapped in local optima. Additionally, even seemingly small differences in parameter space can have very large differences in performance --- so a single bad step can collapse the policy performance. This has drastic impacts on the algorithms' sample efficiency.
 
@@ -108,65 +110,56 @@ To develop a reinforcement learning system that can successfully operate in its 
 
 Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally, the generative model would control the agent in the new environment.  
 
-\subsection{Design}
-The algorithm chosen to be implemented was proximal policy optimisation (PPO). PPO is an on-policy algorithm, and PPO can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
+\subsection{Tools used}
+We used the Python programming language for our implementation, since Python has numerous libraries for machine learning, with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used the PyTorch library, since this is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications to them, without the additional complexity of programming in low-level PyTorch. Additionally, we used OpenCV and Scikit-learn for image manipulation in our pre-processing steps.
+
+So that we wouldn't need to create our own API for Atari emulations, we used Gym, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
+
+For network training, we used Google Colab, which allows Python code to be written and executed in the browser. Google Colab does not require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC), although we chose not to use it due to having no prior remote server experience or job queuing system experience (such as SLURM).
+
+\subsection{Proximal Policy Optimisation (PPO) algorithm}
+The proximal policy optimisation (PPO) algorithm was chosen to be implemented due to its relative simplicity and strong performance on the Atari benchmark \cite{DBLP:journals/corr/SchulmanWDRK17}. PPO is an on-policy algorithm which can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
 
 \textbf{PPO-Penalty} approximately solves a KL-constrained update like TRPO, but penalizes the KL-divergence in the objective function instead of making it a hard constraint, and automatically adjusts the penalty coefficient over the course of training so that it’s scaled appropriately.
 
 \textbf{PPO-Clip} doesn’t have a KL-divergence term in the objective and doesn’t have a constraint at all. Instead relies on specialized clipping in the objective function to remove incentives for the new policy to get far from the old policy.
 
-PPO-clip updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ typically taking multiple steps of (minibatch) SDG to maximise the objective. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $\epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
+Our implementation is of PPO-clip, which updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ takes multiple step of batch gradient descent to maximise the objective, $L$. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $\epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
 
-A simplified version is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$
+A simplified version, which we implement in our code, is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$
 
-To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima. To figure out what intuition to take away from this, let's look at a
-single state-action pair \((s,a)\), and think of cases.
-
-\textbf{Advantage is positive}: Suppose the advantage for that
-state-action pair is positive, in which case its contribution to the
-objective reduces to
+When the advantage for the state-action pair is positive, the objective reduces to
 
 \[L(s,a,\theta_k,\theta) = \min\left(
 \frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon)
 \right)  A^{\pi_{\theta_k}}(s,a).\]
 
 Because the advantage is positive, the objective will increase if the
-action becomes more likely-\/-\/-that is, if \(\pi_{\theta}(a|s)\)
+action becomes more likely --- that is, if \(\pi_{\theta}(a|s)\)
 increases. But the min in this term puts a limit to how \emph{much} the
 objective can increase. Once
 \(\pi_{\theta}(a|s) > (1+\epsilon) \pi_{\theta_k}(a|s)\), the min kicks
 in and this term hits a ceiling of
-\((1+\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus: \emph{the new policy
-does not benefit by going far away from the old policy}.
+\((1+\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus: the new policy
+does not benefit by going far away from the old policy.
 
-\textbf{Advantage is negative}: Suppose the advantage for that
-state-action pair is negative, in which case its contribution to the
-objective reduces to
+On the other hand, when the advantage for the state-action pair is negative, the objective reduces to
 
 \[L(s,a,\theta_k,\theta) = \max\left(
 \frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon)
 \right)  A^{\pi_{\theta_k}}(s,a).\]
 
 Because the advantage is negative, the objective will increase if the
-action becomes less likely-\/-\/-that is, if \(\pi_{\theta}(a|s)\)
-decreases. But the max in this term puts a limit to how \emph{much} the
-objective can increase. Once
-\(\pi_{\theta}(a|s) < (1-\epsilon) \pi_{\theta_k}(a|s)\), the max kicks
-in and this term hits a ceiling of
-\((1-\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus, again: \emph{the new
-policy does not benefit by going far away from the old policy}.
+action becomes less likely. Similar to before, the max in this term puts a limit to how much the objective can increase. Once \(\pi_{\theta}(a|s) < (1-\epsilon) \pi{\theta_k}(a|s)\), the max kicks in and this term hits a ceiling of \((1-\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus, again: the new policy does not benefit by going far away from the old policy.
 
-What we have seen so far is that clipping serves as a regularizer by
+Clipping serves as a regularizer by
 removing incentives for the policy to change dramatically, and the
 hyperparameter \(\epsilon\) corresponds to how far away the new policy
-can go from the old while still profiting the objective. While this kind of clipping goes a long way towards ensuring reasonable
-policy updates, it is still possible to end up with a new policy which
-is too far from the old policy, and there are a bunch of tricks used by
-different PPO implementations to stave this off. In our implementation
-here, we use a particularly simple method: early stopping. If the mean
-KL-divergence of the new policy from the old grows beyond a threshold,
-we stop taking gradient steps.
+can go from the old while still profiting the objective. 
 
+\begin{algorithm}[H]
+    \caption{PPO-Clip pseudocode}
+    \label{alg1}
 \begin{algorithmic}[1]
     \STATE Input: initial policy parameters $\theta_0$, initial value function parameters $\phi_0$
     \FOR{$k = 0,1,2,...$} 
@@ -188,63 +181,39 @@ we stop taking gradient steps.
         typically via some gradient descent algorithm.
     \ENDFOR
 \end{algorithmic}
+\end{algorithm}
 
+\subsection{Design}
+Our PPO implementation is based on Seungeun Rho's implementation with minimal lines of code\footnote{https://github.com/seungeunrho/minimalRL}. The main training loop consists of one agent alternating between collecting experience over $t$ time-steps and performing $k$ steps of gradient descent to update network parameters. 
+
+When collecting experience, the agent samples an action from a state with probability distribution given by the current policy network. Since we are working with environments with a discrete number of possible actions, the probability distribution the policy returns is also discrete. In PyTorch, the distribution takes the form of a tensor, with the number of elements equal to the number of actions available. Each value corresponds to the probability of selecting the action with corresponding index. For example, if the value of the element at index 0 were 0.25, then the probability of selecting action 0, which could be to move left, is 0.25. Necessarily, the probabilities must sum up to 1 each time.
+
+When updating the network parameters, tuples of state, action, reward, and next state from the last $t$ time-steps are used. First, advantage estimates are calculated by the following generalised advantage estimation equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t+1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$. This is used to calculate the PPO-Clip objective, which we subtract from the smooth L1-loss of the value function. Smooth L1-loss creates a criterion that uses a squared term if the absolute element-wise error falls below beta, and an L1 term otherwise. This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}. The loss between $x$ and $y$ is as follows: $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i}$$ where $z_i$ is  given by the following:
+
+\[\begin{aligned}
+z_{i} =
+\begin{cases}
+0.5 (x_i - y_i)^2 / beta, & \text{if } |x_i - y_i| < beta \\
+|x_i - y_i| - 0.5 * beta, & \text{otherwise }
+\end{cases}
+\end{aligned}\]
+
+(Beta is an optional parameter that defaults to 1.)
+
+Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
+    
 \subsection{Implementation features}
-\subsubsection{CartPole}
-For the simple version, we used a fully connected network.
+typically taking multiple steps of (mini-batch) SDG to maximise the objective
 
-DNN are an extension of the traditional artificial neural network, which is a
-technique for pattern recognition which attempts to replicate the function of neurons in the
-human brain. A network is composed of many elements called perceptrons, each of which
-simulates the activity of a neuron in the human brain. Each perceptron takes an input, and
-produces an output by applying its activation function to the input, which is then typically
-sent as input to another perceptron via a weighted edge. Typically, perceptrons are organized
-into layers, with a feed-forward architecture, meaning that the output of a perceptron in a
-given layer is only sent to the next layer in the network. Each perceptron usually has
-connections to every perceptron in the previous layer. Consequently, in a given network there 
+While this kind of clipping goes a long way towards ensuring reasonable
+policy updates, it is still possible to end up with a new policy which
+is too far from the old policy, and there are a bunch of tricks used by
+different PPO implementations to stave this off. In our implementation
+here, we use a particularly simple method: early stopping. If the mean
+KL-divergence of the new policy from the old grows beyond a threshold,
+we stop taking gradient steps.
 
-would typically be an input layer, an output layer, and a number of hidden layers between the
-input and output layers. These networks learn by computing the output for a given input, and
-then updating the connection weights depending on the difference between the actual output
-and the expected output, in order to better meet the expected output if a similar input is
-received (LeCun et al. 1990). We call this supervised learning - feeding data into the network
-along with labels which contain the expected output. With each training iteration, the network
-becomes better at classifying that specific input by adjusting connection weights – the
-network learns how it should classify each input.
-A deep neural network only differs from a standard neural network in that there are a
-greater number of hidden layers between the input and output layer of the network. Since
-each layer of perceptrons trains on the set of features which are based on the output of the
-previous layer, the deeper the network (i.e. the more layers it has), the more complex the
-features it can recognize. Therefore, when we process complex data such as images, DNN
-tend to perform better than standard neural networks. 
-
-\subsubsection{Atari}
-This is how DNN work with a general input, however to process complex images we
-must make use of a more sophisticated structure. Due to images having three dimensions
-(width, height, and depth), they contain a huge number of parameters, and so processing an
-image with a standard network would be very inefficient. To enable neural networks to
-efficiently process images, we use something called convolutional neural networks (LeCun et
-al. 1998), in which the responses of each perceptron are produced by performing a
-convolution operation upon the image. This allows us to arrange perceptrons in three
-dimensions (width, height, and depth), and therefore massively reduce the number of
-parameters required to process an image.
-There are typically 3 main types of layers that are used to build DCNN, which will be
-used throughout our solution. Convolutional layers perform convolution by sliding a filter
-across the image and computing the dot product of the filter with the image values at each
-point, this produces a two-dimensional activation map which gives the response of the filter
-at each point in the image. Many of these filters can be present in a single layer, each
-producing a separate activation map. As the network is trained, it will learn filters that
-activate when they see specific features within the image, such as circular patterns or vertical
-edges. Convolutional layers are the backbone of the convolutional neural network. Pooling
-layers reduce the dimensions of their input by separating the input into grids, and performing
-a down-sampling operation upon each grid. This operation is usually the max function, which
-returns the maximum of a set of numbers. These layers reduce the number of parameters in
-the network, and help prevent overfitting. Fully-connected layers typically occur after the
-convolutional and pooling layers, and have full connections to all activations in the previous
-layer, similar to a layer in a basic neural network. They allow us to shape the output of the
-network to fit the number of classes in the problem, which in our case is 2.
-All networks presented in our solution are DCNN with varying structures.
-
+To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima.
 
 \begin{itemize}
     \item We used an architecture that shares parameters. We don't have an entropy term.
@@ -257,24 +226,6 @@ All networks presented in our solution are DCNN with varying structures.
     \item The original algorithm anneals the adam step size and cliping parameter which we don't.
     \item The original algorithm has an entropy term.
     \item The original algorithm runs 8 agents in parallel. We only did one due to hardware issues. The architecture was also slightly different.  
-\end{itemize}
-
-\subsection{Tools used}
-We used the Python programming language. This was because Python has numerous libraries for machine learning, which support deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow.
-
-We used the PyTorch library. This was because PyTorch is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications ot them, without the additional complexity of programming in low-level PyTorch.
-
-We used OpenCV and Scikit-learn for image manipulation, so we did not have to implement pre-processing techniques from scratch.
-
-We used Gym, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. We chose this so we could focus on the algorithm. Gym provides a collection of environments. Environments include Atari games, control theory problems, and physics simulations. The environments have a shared interface, which allows us to write general algorithms.
-
-We used Google Colab, which Python code to be written and executed in the browser. This was because it doesn't require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC). We chose not to use this because we had no remote server experience or job queuing system experience (such as SLURM).
-
-\begin{itemize}
-    \item Rather than implement everything from scratch, we built on frameworks to allow focus on algorithm design.
-    \item OpenAI Gym, arcade learning environment
-    \item Adam optimiser
-    \item PyTorch
 \end{itemize}
 
 \subsection{Verification and validation}
@@ -316,7 +267,7 @@ We used Google Colab, which Python code to be written and executed in the browse
 \end{itemize}
 
 \newpage
-\section{Evaluation (3 pages)}
+\section{Evaluation (4 pages)}
 [Bridging paragraph]
 \subsection{Suitability of the approach (more SE, maybe exclude?)}
 PPO methods are significantly simpler to implement, and empirically seem to perform at least as well as TRPO.
