@@ -25,27 +25,15 @@
 \maketitle
 
 \begin{abstract}
+{\bf Background}: The recent success of reinforcement learning systems solving visually complex tasks, such as playing video games, means that such systems have potential for real-world applications, such as self-driving cars. To improve these systems, there is ongoing research into developing ways to apply knowledge gained from previous tasks to solve new tasks, such as from driving in a simulation to driving in the real world.
 
-\begin{flushleft} 
-{\bf Background} --- The recent success of reinforcement learning systems solving visually complex tasks, such as playing video games, means that such systems have potential for real-world applications, such as self-driving cars. To improve these systems, there is ongoing research into developing ways to apply knowledge gained from previous tasks to solve new tasks, such as from driving in a simulation to driving in the real world.
-\end{flushleft}
+{\bf Aims}: The aim of this project is to develop an understanding of reinforcement learning and its intersection with transfer learning by investigating the use of deep neural networks and pre-training. We aim to assess to what extent a current state-of-the-art architecture benefits from pre-training in the context of learning to play Atari video-games.
 
-\begin{flushleft}
-{\bf Aims} --- The aim of this project is to develop an understanding of reinforcement learning and its intersection with transfer learning by investigating the use of deep neural networks and pre-training. We aim to assess to what extent a current state-of-the-art architecture benefits from pre-training in the context of learning to play Atari video-games.
-\end{flushleft}
+{\bf Method}: Classic-control and Atari 2600 environments provided by OpenAI Gym are used to train an initial implementation of the proximal policy optimisation (PPO) algorithm followed by a subsequent implementation which uses a deep convolutional neural network. In addition to this, network weights from an agent trained on Breakout were used as initial weights for another agent training on Pong, after which its performance was evaluated in comparison to one without pre-training. 
 
-\begin{flushleft}
-{\bf Method} --- Classic-control and Atari 2600 environments provided by OpenAI Gym are used to train an initial implementation of the proximal policy optimisation (PPO) algorithm followed by a subsequent implementation which uses a deep convolutional neural network. In addition to this, network weights from an agent trained on Breakout were used as initial weights for another agent training on Pong, after which its performance was evaluated in comparison to one without pre-training. 
-\end{flushleft}
+{\bf Results}: Pre-training leads to the agent performing better, as measured by an improvement in the following three metrics: jump-start performance, accumulated reward, and final performance. The more pre-training information the agent has, the better it performs. 
 
-\begin{flushleft}
-{\bf Results} --- Pre-training leads to the agent performing better, as measured by an improvement in the following three metrics: jump-start performance, accumulated reward, and final performance. The more pre-training information the agent has, the better it performs. 
-\end{flushleft}
-
-\begin{flushleft}
-{\bf Conclusions} --- Transfer learning is a promising method to prepare agents for environments where it has limited opportunities to interact with and learn from. By training agents on similar environments, we can build confidence that the agent will perform successfully when evaluated on the test environment. This is particularly useful in fields such as autonomous driving, where the vehicle must be able to adapt to various changes in the environment.
-\end{flushleft}
-
+{\bf Conclusions}: Transfer learning is a promising method to prepare agents for environments where it has limited opportunities to interact with and learn from. By training agents on similar environments, we can build confidence that the agent will perform successfully when evaluated on the test environment. This is particularly useful in fields such as autonomous driving, where the vehicle must be able to adapt to various changes in the environment.
 \end{abstract}
 
 \begin{keywords}
@@ -115,7 +103,7 @@ Additionally, there is another set of requirements for developing a system to pr
 \subsection{Tools used}
 We used the Python programming language for our implementation, since Python has numerous libraries for machine learning, with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used the PyTorch library, since this is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications to them, without the additional complexity of programming in low-level PyTorch. Additionally, we used OpenCV and Scikit-learn for image manipulation in our pre-processing steps.
 
-So that we wouldn't need to create our own API for Atari emulations, we used Gym \cite{1606.01540}, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
+So we wouldn't need to create our own API for Atari emulations, we used Gym \cite{1606.01540}, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
 
 For network training, we used Google Colab, which allows Python code to be written and executed in the browser. Google Colab does not require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC), although we chose not to use it due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
@@ -154,10 +142,7 @@ On the other hand, when the advantage for the state-action pair is negative, the
 Because the advantage is negative, the objective will increase if the
 action becomes less likely. Similar to before, the max in this term puts a limit to how much the objective can increase. Once \(\pi_{\theta}(a|s) < (1-\epsilon) \pi{\theta_k}(a|s)\), the max kicks in and this term hits a ceiling of \((1-\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus, again: the new policy does not benefit by going far away from the old policy.
 
-Clipping serves as a regularizer by
-removing incentives for the policy to change dramatically, and the
-hyperparameter \(\epsilon\) corresponds to how far away the new policy
-can go from the old while still profiting the objective. 
+Clipping serves as a regulariser by removing incentives for the policy to change dramatically, and the hyperparameter \(\epsilon\) corresponds to how far away the new policy can go from the old while still profiting the objective. 
 
 \begin{algorithm}[H]
     \caption{PPO-Clip pseudocode}
@@ -217,7 +202,7 @@ edges. Convolutional layers are the backbone of the convolutional neural network
 layers reduce the dimensions of their input by separating the input into grids, and performing
 a down-sampling operation upon each grid. This operation is usually the max function, which
 returns the maximum of a set of numbers. These layers reduce the number of parameters in
-the network, and help prevent overfitting. Fully-connected layers typically occur after the
+the network, and help prevent over-fitting. Fully-connected layers typically occur after the
 convolutional and pooling layers, and have full connections to all activations in the previous
 layer, similar to a layer in a basic neural network. They allow us to shape the output of the
 network to fit the number of classes in the problem.''
@@ -245,7 +230,7 @@ network to fit the number of classes in the problem.''
     \item We tried frame skipping.
     \item We did preprocessing of frames
     \item We tried resetting after end of each life. 
-    \item The original algorithm anneals the adam step size and cliping parameter which we don't.
+    \item The original algorithm anneals the adam step size and clipping parameter which we don't.
     \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
 \end{itemize}
 
@@ -261,7 +246,7 @@ network to fit the number of classes in the problem.''
 \end{itemize}
 
 \newpage
-\section{Results (3 pages)}
+\section{Results}
 [Bridging paragraph]
 \subsection{Evaluation method}
 \begin{itemize}
@@ -279,36 +264,27 @@ network to fit the number of classes in the problem.''
 \end{itemize}
 
 \newpage
-\section{Evaluation (4 pages)}
+\section{Evaluation}
 [Bridging paragraph]
-\subsection{Suitability of the approach (more SE, maybe exclude?)}
-PPO methods are significantly simpler to implement, and empirically seem to perform at least as well as TRPO.
-\begin{itemize}
-    \item The approach was/was not suitable because \dots
-    \item Was it a good idea to use PyTorch, etc.?
-\end{itemize}
+\subsection{System strengths} 
 
-\subsection{Strengths and limitations of the algorithm} 
-\begin{itemize}
-    \item The strengths of the algorithm were \dots
-    \item The limitations of the algorithm were \dots
-    \item The lessons learnt were \dots
-\end{itemize}
+\subsection{System limitations}
 
-Limitation: PPO trains a stochastic policy in an on-policy way. This means that it
-explores by sampling actions according to the latest version of its
-stochastic policy. The amount of randomness in action selection depends
-on both initial conditions and the training procedure. Over the course
-of training, the policy typically becomes progressively less random, as
-the update rule encourages it to exploit rewards that it has already
-found. This may cause the policy to get trapped in local optima.
+\subsection{Approach}
+\begin{itemize}
+    \item Our approach of first producing a reinforcement learning system, and then extending this to produce a transfer learning system was good. The intention was an agile approach, but this didn't really happen. A great portion of the time spent was devoted to building a theoretical foundation, a lot of which has not been mentioned.
+    \item Using TensorFlow proved to be a challenge, and introduced a sharp
+    learning curve. Google Colab and Gym had issues. Learning to save and load models, save videos from Gym, etc. was difficult. 
+    \item The key limiting factor was the lack of experience doing project-based work and no prior background in machine learning. These had adverse effects of the quality of the solution produced.
+\end{itemize}
 
 \subsection{Project organisation}
 \begin{itemize}
     \item The project was organised as well as you would expect in a global pandemic \dots
 \end{itemize}
 
-\section{Conclusions (1 page)}
+\newpage
+\section{Conclusions}
 \subsection{Project overview}
 \begin{itemize}
     \item The project was to \dots
@@ -325,6 +301,6 @@ found. This may cause the policy to get trapped in local optima.
     \item The project can be extended by \dots
 \end{itemize}
 
-\cite{}
+\newpage
 \bibliography{references}
 \end{document}
