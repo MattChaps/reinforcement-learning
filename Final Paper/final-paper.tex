@@ -6,6 +6,8 @@
 \usepackage{amssymb,amsmath}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
 
 \citationmode{abbr}
 \bibliographystyle{agsm}
@@ -58,7 +60,7 @@ This project is about reinforcement learning and transfer learning. The project 
 \subsubsection{Reinforcement learning}
 Reinforcement learning is the class of problems concerned with an agent learning behaviour through trial-and-error interactions with a dynamic environment \cite{Kaelbling1996}. An example of a problem is an aspiring tightrope walker (the agent) learning to maintain balance (the behaviour) while walking along a tightrope that contorts and wobbles under their weight (the dynamic environment). With each attempt and fall (the trial-and-error interactions), the walker learns how better to correct their balance, and adjusts their behaviour slightly for the next attempt. When the walker is able to maintain balance consistently over consecutive attempts, the desired behaviour is achieved, and so the learning task is complete. We say that the problem is solved and the reinforcement learning agent has learned to perform successfully in the environment.  
 
-There are algorithms that act as agents that solve reinforcement learning problems. These reinforcement learning algorithms can solve problems in physical settings, such as driving cars, or in virtual settings, such as playing games. We can treat these algorithms as functions that takes as input observations and outputs actions. Examples of observations are the video from a camera attached to a self-driving car or the positions of pieces on a chessboard in an online match. Examples of corresponding actions are to turn the steering wheel in one direction or to move a chess piece. The goal of the algorithm is to learn which actions are the best to take given some observations. How good an action given an observation is can be measured by how likely taking the action is to lead to the desired behaviour. For an algorithm that drives cars, the desired behaviour might be to drive safely, and so the algorithm would know to stop at a red traffic light. Whereas, for an algorithm that plays chess, the desired behaviour might be to win, and so the algorithm would know to take the opponent's king. The algorithm is learning a mapping, from actions and observations to values, to inform its decision-making. This mapping is initially unknown, but improves the more the algorithm interacts with its environment --- the same way one gets better with practice at driving or playing chess. For relatively complex problems, there may not be an optimal solution, such as behaviour that guarantees no accidents or that always wins, and so the best the algorithm can do is to approximate an optimal solution. 
+There are algorithms that act as agents that solve reinforcement learning problems. These reinforcement learning algorithms can solve problems in physical settings, such as driving cars, or in virtual settings, such as playing games. We can treat these algorithms as functions that takes as input observations and outputs actions. Examples of observations are the video from a camera attached to a self-driving car or the positions of pieces on a chessboard in an online match. Examples of corresponding actions are to turn the steering wheel in one direction or to move a chess piece. The goal of the algorithm is to learn which actions are the best to take given some observations. How good an action given an observation is can be measured by how likely taking the action is to lead to the desired behaviour. For an algorithm that drives cars, the desired behaviour might be to drive safely, and so the algorithm would know to stop at a red traffic light. Whereas, for an algorithm that plays chess, the desired behaviour might be to win, and so the algorithm would know to take the opponent's king piece. The algorithm is learning a mapping, from actions and observations to values, to inform its decision-making. This mapping is initially unknown, but improves the more the algorithm interacts with its environment --- the same way one gets better with practice at driving or playing chess. For relatively complex problems, there may not be an optimal solution, such as behaviour that guarantees no accidents or that always wins, and so the best the algorithm can do is to approximate an optimal solution. 
 
 \subsubsection{Transfer learning}
 Transfer learning is the application of knowledge gained while solving one problem to solve a different but related problem \cite{2010}. An example is an agent who has learned to walk a tightrope (solving one problem) applying their balancing ability (the knowledge gained) to learn to surf (a different but related problem). By reusing knowledge gained from solving past problems, it is expected that solving a different but related problem will be more efficient than it would be without the prior knowledge. As in the example, a tightrope walker should learn to balance on a surfboard more easily and more quickly, due to their knowledge of balancing on a rope, than someone without the same acquired knowledge of balancing. 
@@ -113,7 +115,7 @@ Additionally, there is another set of requirements for developing a system to pr
 \subsection{Tools used}
 We used the Python programming language for our implementation, since Python has numerous libraries for machine learning, with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used the PyTorch library, since this is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications to them, without the additional complexity of programming in low-level PyTorch. Additionally, we used OpenCV and Scikit-learn for image manipulation in our pre-processing steps.
 
-So that we wouldn't need to create our own API for Atari emulations, we used Gym, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
+So that we wouldn't need to create our own API for Atari emulations, we used Gym \cite{1606.01540}, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
 
 For network training, we used Google Colab, which allows Python code to be written and executed in the browser. Google Colab does not require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC), although we chose not to use it due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
@@ -184,6 +186,7 @@ can go from the old while still profiting the objective.
 \end{algorithm}
 
 \subsection{Design}
+\subsubsection{Main training loop}
 Our PPO implementation is based on Seungeun Rho's implementation with minimal lines of code\footnote{https://github.com/seungeunrho/minimalRL}. The main training loop consists of one agent alternating between collecting experience over $t$ time-steps and performing $k$ steps of gradient descent to update network parameters. 
 
 When collecting experience, the agent samples an action from a state with probability distribution given by the current policy network. Since we are working with environments with a discrete number of possible actions, the probability distribution the policy returns is also discrete. In PyTorch, the distribution takes the form of a tensor, with the number of elements equal to the number of actions available. Each value corresponds to the probability of selecting the action with corresponding index. For example, if the value of the element at index 0 were 0.25, then the probability of selecting action 0, which could be to move left, is 0.25. Necessarily, the probabilities must sum up to 1 each time.
@@ -201,51 +204,60 @@ z_{i} =
 (Beta is an optional parameter that defaults to 1.)
 
 Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
-    
-\subsection{Implementation features}
-typically taking multiple steps of (mini-batch) SDG to maximise the objective
 
-While this kind of clipping goes a long way towards ensuring reasonable
-policy updates, it is still possible to end up with a new policy which
-is too far from the old policy, and there are a bunch of tricks used by
-different PPO implementations to stave this off. In our implementation
-here, we use a particularly simple method: early stopping. If the mean
-KL-divergence of the new policy from the old grows beyond a threshold,
-we stop taking gradient steps.
-
-To prevent ending up with a new policy which is too far from the old policy, we can stop taking the gradient steps if the mean KL-divergence of the new policy form the old grows beyond a threshold (early stopping). The method is susceptible to policies being trapped in local optima.
+\subsubsection{Network architecture}
+We use a deep convolutional neural network as the main component of our policy gradient and value function estimators. ``There are typically 3 main types of layers that are used to build DCNN, which will be
+used throughout our solution. Convolutional layers perform convolution by sliding a filter
+across the image and computing the dot product of the filter with the image values at each
+point, this produces a two-dimensional activation map which gives the response of the filter
+at each point in the image. Many of these filters can be present in a single layer, each
+producing a separate activation map. As the network is trained, it will learn filters that
+activate when they see specific features within the image, such as circular patterns or vertical
+edges. Convolutional layers are the backbone of the convolutional neural network. Pooling
+layers reduce the dimensions of their input by separating the input into grids, and performing
+a down-sampling operation upon each grid. This operation is usually the max function, which
+returns the maximum of a set of numbers. These layers reduce the number of parameters in
+the network, and help prevent overfitting. Fully-connected layers typically occur after the
+convolutional and pooling layers, and have full connections to all activations in the previous
+layer, similar to a layer in a basic neural network. They allow us to shape the output of the
+network to fit the number of classes in the problem.''
 
 \begin{itemize}
+    \item Our network architecture consists of a deep convolutional neural network connected to two fully-connected layers on two branches. 
+    \item The motivation behind this is that the DCNN learns edges and features, which the fully-connected layers then use to each estimate the value function and policy gradient respectively.
+    \item Our DCNN consists of 3 blocks. 1) 4 in (of 84x84 image), 32 out, kernel size 8, stride 4. 2) 32 in, 64 out, kernel size 4, stride 2. 3) 64 in, 64 out, kernel size 3, stride 1.
+    \item This is the architecture used by the DQN paper.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{ppo-architecture}
+\caption{Our PPO network architecture}
+\end{figure}
+    
+\subsection{Implementation features}
+\begin{itemize}
+    \item Our implementation differs from the main paper in a number of ways.
     \item We used an architecture that shares parameters. We don't have an entropy term.
-    \item We used clipped surrogate objective.
+    \item We don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
+    \item We did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective
     \item We used our own convolutional neural network.
-    \item We did not do frame skip. We tried frame skip.
+    \item We tried frame skipping.
     \item We did preprocessing of frames
     \item We tried resetting after end of each life. 
-    \item The original algorithm does minibatch updates where we do batch updates.
     \item The original algorithm anneals the adam step size and cliping parameter which we don't.
-    \item The original algorithm has an entropy term.
-    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware issues. The architecture was also slightly different.  
+    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
 \end{itemize}
 
 \subsection{Verification and validation}
 \begin{itemize}
-    \item Verification was done by \dots 
-    \begin{itemize}
-        \item Do implementations work there? \dots 
-        \item What do I do to judge the outcome/success?
-        \item Try to answer whether transfer learning is generalisable 
-    \end{itemize}
-    \item Validation was done by \dots
+    \item We did unit tests for each component, and then integration testing. Here's how we did it \dots
 \end{itemize}
 
 \subsection{Testing}
-[Bridging paragraph]
 \begin{itemize}
-    \item Testing was done by \dots
-    \begin{itemize}
-        \item reproduce on simple problems
-    \end{itemize}
+    \item We tested the algorithm on simple environments. 
+    \item Due to long training times, it was difficult to debug and test the code. 
 \end{itemize}
 
 \newpage
