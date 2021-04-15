@@ -198,12 +198,8 @@ point, this produces a two-dimensional activation map which gives the response o
 at each point in the image. Many of these filters can be present in a single layer, each
 producing a separate activation map. As the network is trained, it will learn filters that
 activate when they see specific features within the image, such as circular patterns or vertical
-edges. Convolutional layers are the backbone of the convolutional neural network. Pooling
-layers reduce the dimensions of their input by separating the input into grids, and performing
-a down-sampling operation upon each grid. This operation is usually the max function, which
-returns the maximum of a set of numbers. These layers reduce the number of parameters in
-the network, and help prevent over-fitting. Fully-connected layers typically occur after the
-convolutional and pooling layers, and have full connections to all activations in the previous
+edges. Convolutional layers are the backbone of the convolutional neural network. Fully-connected layers typically occur after the
+convolutional layers, and have full connections to all activations in the previous
 layer, similar to a layer in a basic neural network. They allow us to shape the output of the
 network to fit the number of classes in the problem.''
 
@@ -211,7 +207,7 @@ network to fit the number of classes in the problem.''
     \item Our network architecture consists of a deep convolutional neural network connected to two fully-connected layers on two branches. 
     \item The motivation behind this is that the DCNN learns edges and features, which the fully-connected layers then use to each estimate the value function and policy gradient respectively.
     \item Our DCNN consists of 3 blocks. 1) 4 in (of 84x84 image), 32 out, kernel size 8, stride 4. 2) 32 in, 64 out, kernel size 4, stride 2. 3) 64 in, 64 out, kernel size 3, stride 1.
-    \item This is the architecture used by the DQN paper.
+    \item This is the architecture we used.
 \end{itemize}
 
 \begin{figure}[h]
@@ -234,10 +230,13 @@ network to fit the number of classes in the problem.''
     \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
 \end{itemize}
 
-\subsection{Verification and validation}
-\begin{itemize}
-    \item We did unit tests for each component, and then integration testing. Here's how we did it \dots
-\end{itemize}
+\subsection{Verification}
+Verification was done on the reinforcement learning system to check that the specification was met. During developmental stages, verification methods consisted of conducting individual tests to run components of the system, followed by checking the results from the run. We tested each frame pre-processing step (greyscaling, cropping, resizing, and stacking), the convolutional layer, and both fully-connected layers, by checking the outputs were as expected. Although we did not implement verification methods for after the developmental stages, the prior tests ensured that the specification continued to be met once the system was formed. Nonetheless, an improvement would be to implement additional tests, such as to check action probabilities and replay-buffer content during training.
+
+Were the transfer learning system to have been successfully implemented, verification would also have been done on it. For transfer learning via policy transfer, the verification method would be to check that each network parameter of the newly initialised agent was equal to that of the trained agent. For transfer learning via the generative model, verification methods would consist of conducting tests for each pre-processing step and network layer, as well as during training.
+
+\subsection{Validation}
+Validation was done to ensure that the solution would meet the project objectives. Validation methods involved discussing with the project advisor and predicting barriers that could lead to insufficient completion of the solution. This led to the updating of project objectives which were used as guidance for planning. Another validation method was to refer back to the original project proposal, \textit{Reinforcement Learning}, from which this project has evolved. By doing validation, we establish evidence that the solution achieved at least the intended minimum objectives.  
 
 \subsection{Testing}
 \begin{itemize}
