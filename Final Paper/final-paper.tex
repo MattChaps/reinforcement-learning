@@ -88,7 +88,7 @@ The advanced objectives were to develop a novel architecture and workflow for pr
 Many academic papers have been published introducing RL algorithms that learn to perform successfully in its environment. For an agent to succeed, it must learn a map, $f: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$, that maps from state-action pairs to values, and make informed decisions. Most existing solutions learn this map by either value-based methods or policy gradient methods. 
 
 \subsection{Value-based methods}
-The value-based class of reinforcement learning algorithms aims to build a value function, which subsequently lets us define a policy. One of the simplest and most popular value-based algorithms is the Q-learning algorithm \cite{Watkins1992}. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function \cite{R-352-PR}, which has a unique solution under certain conditions. This idea was expanded to involve approximating the Q-values from experiences gathered \cite{10.5555/2998828.2998976}, and parametrising the Q-values with a neural network whose parameters are updated by stochastic gradient descent (or a variant) by maximising a loss function \cite{10.1007/11564096_32}. A breakthrough approach used deep convolutional neural networks and a replay memory to play Atari games by learning from pixels and a wide range of past experiences; this approach was the deep Q-network (DQN) algorithm \cite{DBLP:journals/corr/MnihKSGAWR13}. More recent approaches made improvements to the DQN algorithm, such as duelling DQN \cite{DBLP:journals/corr/WangFL15} and double DQN \cite{DBLP:journals/corr/HasseltGS15}. Rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} is a combination of the many improvements to the DQN algorithm. For simple environments, a unique solution to the optimal Q-value function may be found; whereas, for complex environments, such as video games, modern approaches use neural networks to approximate the Q-values, which are then used to define a policy. 
+The value-based class of reinforcement learning algorithms aims to build a value function, which subsequently lets us define a policy. One of the simplest and most popular value-based algorithms is the Q-learning algorithm \cite{Watkins1992}. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function \cite{R-352-PR}, which has a unique solution under certain conditions. This idea was expanded to involve approximating the Q-values from experiences gathered \cite{10.5555/2998828.2998976}, and parametrising the Q-values with a neural network whose parameters are updated by stochastic gradient descent (SGD) (or a variant) by maximising a loss function \cite{10.1007/11564096_32}. A breakthrough approach used deep convolutional neural networks and a replay memory to play Atari games by learning from pixels and a wide range of past experiences; this approach was the deep Q-network (DQN) algorithm \cite{DBLP:journals/corr/MnihKSGAWR13}. More recent approaches made improvements to the DQN algorithm, such as duelling DQN \cite{DBLP:journals/corr/WangFL15} and double DQN \cite{DBLP:journals/corr/HasseltGS15}. Rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} is a combination of the many improvements to the DQN algorithm. For simple environments, a unique solution to the optimal Q-value function may be found; whereas, for complex environments, such as video games, modern approaches use neural networks to approximate the Q-values, which are then used to define a policy. 
 
 One limitation with value-based approaches is that these types of algorithms are not well-suited to deal with large action spaces. In the Atari game Gravitar which has 18 actions, a DQN agent achieves a mean score of 306.7, compared to 2672 by a human \cite{Mnih2015}. 
 
@@ -115,46 +115,36 @@ So we wouldn't need to create our own API for Atari emulations, we used Gym \cit
 
 For network training, we used Google Colab, which allows Python code to be written and executed in the browser. Google Colab does not require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC), although we chose not to use it due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
-\subsection{Proximal Policy Optimisation (PPO) algorithm}
-(At the moment mostly notes that were copied. Will reword.)
+\subsection{Design}
+\subsubsection{Proximal Policy Optimisation (PPO) algorithm}
+The proximal policy optimisation (PPO) algorithm was chosen to be implemented due to its relative simplicity (compared to other policy gradient methods) and strong performance on the Atari benchmark \cite{DBLP:journals/corr/SchulmanWDRK17}. The most widely used version of PPO is PPO-Clip, so this is the version we implement.
 
-The proximal policy optimisation (PPO) algorithm was chosen to be implemented due to its relative simplicity and strong performance on the Atari benchmark \cite{DBLP:journals/corr/SchulmanWDRK17}. PPO is an on-policy algorithm which can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
+PPO tries to improve the policy by as much as possible at each learning step without collapsing performance. The algorithm utilises clipping in the objective function to keep the new policy close to the old. The algorithm we implemented updates its policy parameters, $\theta$, by \[\theta_{k+1} = \arg \max_{\theta} \underset{s,a \sim \pi_{\theta_k}}{{\mathrm E}}\left[L(s,a,\theta_k, \theta)\right].\] The original algorithm by OpenAI takes multiple steps of minibatch stochastic gradient descent to maximise the objective, $L$, given by \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}  A^{\pi_{\theta_k}}(s,a), \;\;\text{clip}\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1+\epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),\] for small $\epsilon$. On the other hand, our implementation takes multiple steps of batch stochastic gradient descent.
 
-\textbf{PPO-Penalty} approximately solves a KL-constrained update like TRPO, but penalizes the KL-divergence in the objective function instead of making it a hard constraint, and automatically adjusts the penalty coefficient over the course of training so that it’s scaled appropriately.
+A simplified version of $L$, which we write in the code, is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$ When the advantage for the state-action pair is positive, the objective becomes \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\] Whereas, when the advantage for the state-action pair is negative, the objective becomes \[L(s,a,\theta_k,\theta) = \max\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\]
 
-\textbf{PPO-Clip} doesn’t have a KL-divergence term in the objective and doesn’t have a constraint at all. Instead relies on specialized clipping in the objective function to remove incentives for the new policy to get far from the old policy.
+A positive advantage will increase the objective if the action becomes more likely --- i.e., \(\pi_{\theta}(a|s)\) increases --- and a negative advantage will increase the objective if the action becomes less likely --- i.e., \(\pi_{\theta}(a|s)\) decreases. 
 
-Our implementation is of PPO-clip, which updates policies via $$\theta_{k+1} = arg \max_\theta \mathbb{E}_{s,a \sim \pi_{\theta_k}} \left[ L(s,a,\theta_k,\theta) \right],$$ takes multiple step of batch gradient descent to maximise the objective, $L$. $L$ is given by $$L(s,a,\theta_k,\theta) = min \left(\frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), \text{clip} \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1 + \epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),$$ in which $\epsilon$ is a (small) hyperparameter which roughly says how far away the new policy is allowed to go from the old. Gradient clipping is a technique to prevent exploding gradients, such as rescaling gradients so that their norm is at most a particular value. 
+PPO's policy is stochastic, meaning that actions are sampled from the most recent policy. To learn which actions are better, the algorithm must \emph{explore} its environment. The ability to explore depends on taking actions that lead to less explored states, however, and how much PPO explores can be affected by how it trains and initial conditions. The more the algorithm trains, the less random its behaviour becomes, as its learning step pushes action probabilities to \emph{exploit} rewards that were found previously. Unfortunately, the policy can trap itself in local optima.
 
-A simplified version, which we implement in our code, is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$
+\subsubsection{Main training loop}
+Our PPO implementation is based on Seungeun Rho's implementation\footnote{https://github.com/seungeunrho/minimalRL}. The main training loop consists of one agent alternating between collecting experience over $t$ time-steps and performing $k$ steps of gradient descent to update network parameters. 
 
-When the advantage for the state-action pair is positive, the objective reduces to
+When collecting experience, the agent samples an action from a state with probability distribution given by the current policy network. Since we are working with environments with a discrete number of possible actions, the probability distribution the policy returns is also discrete. In PyTorch, the distribution takes the form of a tensor, with the number of elements equal to the number of actions available. Each value corresponds to the probability of selecting the action with corresponding index. For example, if the value of the element at index 0 were 0.25, then the probability of selecting action 0, which could be to move left, is 0.25. Necessarily, the probabilities must sum up to 1 each time.
 
-\[L(s,a,\theta_k,\theta) = \min\left(
-\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon)
-\right)  A^{\pi_{\theta_k}}(s,a).\]
+When updating the network parameters, tuples of state, action, reward, and next state from the last $t$ time-steps are used. First, advantage estimates are calculated for the most recent $T$ timesteps, where $t$ specifies the time index in $[0, T]$, by the following generalised advantage estimation equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t+1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$. This is used to calculate the PPO-Clip objective, which we subtract from the smooth L1-loss of the value function. Smooth L1-loss creates a criterion that uses a squared term if the absolute element-wise error falls below beta, and an L1 term otherwise. This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}. The loss between $x$ and $y$ is as follows: $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i}$$ where $z_i$ is  given by the following:
 
-Because the advantage is positive, the objective will increase if the
-action becomes more likely --- that is, if \(\pi_{\theta}(a|s)\)
-increases. But the min in this term puts a limit to how \emph{much} the
-objective can increase. Once
-\(\pi_{\theta}(a|s) > (1+\epsilon) \pi_{\theta_k}(a|s)\), the min kicks
-in and this term hits a ceiling of
-\((1+\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus: the new policy
-does not benefit by going far away from the old policy.
+\[\begin{aligned}
+z_{i} =
+\begin{cases}
+0.5 (x_i - y_i)^2 / 1, & \text{if } |x_i - y_i| < 1 \\
+|x_i - y_i| - 0.5 * 1, & \text{otherwise }
+\end{cases}
+\end{aligned}\]
 
-On the other hand, when the advantage for the state-action pair is negative, the objective reduces to
+Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
 
-\[L(s,a,\theta_k,\theta) = \max\left(
-\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon)
-\right)  A^{\pi_{\theta_k}}(s,a).\]
-
-Because the advantage is negative, the objective will increase if the
-action becomes less likely. Similar to before, the max in this term puts a limit to how much the objective can increase. Once \(\pi_{\theta}(a|s) < (1-\epsilon) \pi{\theta_k}(a|s)\), the max kicks in and this term hits a ceiling of \((1-\epsilon) A^{\pi_{\theta_k}}(s,a)\). Thus, again: the new policy does not benefit by going far away from the old policy.
-
-Clipping serves as a regulariser by removing incentives for the policy to change dramatically, and the hyperparameter \(\epsilon\) corresponds to how far away the new policy can go from the old while still profiting the objective. 
-
-\begin{algorithm}[H]
+\begin{algorithm}[h]
     \caption{PPO-Clip pseudocode}
     \label{alg1}
 \begin{algorithmic}[1]
@@ -162,7 +152,7 @@ Clipping serves as a regulariser by removing incentives for the policy to change
     \FOR{$k = 0,1,2,...$} 
     \STATE Collect set of trajectories ${\mathcal D}_k = \{\tau_i\}$ by running policy $\pi_k = \pi(\theta_k)$ in the environment.
     \STATE Compute rewards-to-go $\hat{R}_t$.
-    \STATE Compute advantage estimates, $\hat{A}_t$ (using any method of advantage estimation) based on the current value function $V_{\phi_k}$.
+    \STATE Compute advantage estimates, $\hat{A}_t$ (using generalised advantage estimation) based on the current value function $V_{\phi_k}$.
     \STATE Update the policy by maximizing the PPO-Clip objective:
         \begin{equation*}
         \theta_{k+1} = \arg \max_{\theta} \frac{1}{|{\mathcal D}_k| T} \sum_{\tau \in {\mathcal D}_k} \sum_{t=0}^T \min\left(
@@ -170,60 +160,30 @@ Clipping serves as a regulariser by removing incentives for the policy to change
             g(\epsilon, A^{\pi_{\theta_k}}(s_t,a_t))
         \right),
         \end{equation*}
-        typically via stochastic gradient ascent with Adam.
-    \STATE Fit value function by regression on mean-squared error:
-        \begin{equation*}
-        \phi_{k+1} = \arg \min_{\phi} \frac{1}{|{\mathcal D}_k| T} \sum_{\tau \in {\mathcal D}_k} \sum_{t=0}^T\left( V_{\phi} (s_t) - \hat{R}_t \right)^2,
-        \end{equation*}
-        typically via some gradient descent algorithm.
+        via batch stochastic gradient ascent with Adam.
     \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Design}
-\subsubsection{Main training loop}
-Our PPO implementation is based on Seungeun Rho's implementation with minimal lines of code\footnote{https://github.com/seungeunrho/minimalRL}. The main training loop consists of one agent alternating between collecting experience over $t$ time-steps and performing $k$ steps of gradient descent to update network parameters. 
-
-When collecting experience, the agent samples an action from a state with probability distribution given by the current policy network. Since we are working with environments with a discrete number of possible actions, the probability distribution the policy returns is also discrete. In PyTorch, the distribution takes the form of a tensor, with the number of elements equal to the number of actions available. Each value corresponds to the probability of selecting the action with corresponding index. For example, if the value of the element at index 0 were 0.25, then the probability of selecting action 0, which could be to move left, is 0.25. Necessarily, the probabilities must sum up to 1 each time.
-
-When updating the network parameters, tuples of state, action, reward, and next state from the last $t$ time-steps are used. First, advantage estimates are calculated by the following generalised advantage estimation equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t+1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$. This is used to calculate the PPO-Clip objective, which we subtract from the smooth L1-loss of the value function. Smooth L1-loss creates a criterion that uses a squared term if the absolute element-wise error falls below beta, and an L1 term otherwise. This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}. The loss between $x$ and $y$ is as follows: $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i}$$ where $z_i$ is  given by the following:
-
-\[\begin{aligned}
-z_{i} =
-\begin{cases}
-0.5 (x_i - y_i)^2 / beta, & \text{if } |x_i - y_i| < beta \\
-|x_i - y_i| - 0.5 * beta, & \text{otherwise }
-\end{cases}
-\end{aligned}\]
-
-(Beta is an optional parameter that defaults to 1.)
-
-Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
+\subsubsection{Deep convolutional neural networks (DCNN)}
+We use a deep convolutional neural network as the main component of our policy gradient and value function estimators. There are typically 3 main types of layers that are used to build DCNN, which will be used throughout our solution. Convolutional layers perform convolution by sliding a filter across the image and computing the dot product of the filter with the image values at each point, this produces a two-dimensional activation map which gives the response of the filter at each point in the image. Many of these filters can be present in a single layer, each producing a separate activation map. As the network is trained, it will learn filters that activate when they see specific features within the image, such as circular patterns or vertical edges. We have two sets of fully-connected layers that occur after the convolutional layers. These have full connections to all activations in the previous layer. They allow us to shape the output of the network to fit the number of classes in the problem. For the policy, we shape the output to the number of actions available to the agent. Whereas, for the value, we shape the output to one.
 
 \subsubsection{Network architecture}
-We use a deep convolutional neural network as the main component of our policy gradient and value function estimators. ``There are typically 3 main types of layers that are used to build DCNN, which will be
-used throughout our solution. Convolutional layers perform convolution by sliding a filter
-across the image and computing the dot product of the filter with the image values at each
-point, this produces a two-dimensional activation map which gives the response of the filter
-at each point in the image. Many of these filters can be present in a single layer, each
-producing a separate activation map. As the network is trained, it will learn filters that
-activate when they see specific features within the image, such as circular patterns or vertical
-edges. Convolutional layers are the backbone of the convolutional neural network. Fully-connected layers typically occur after the
-convolutional layers, and have full connections to all activations in the previous
-layer, similar to a layer in a basic neural network. They allow us to shape the output of the
-network to fit the number of classes in the problem.''
+Our network architecture consists of a deep convolutional neural network connecetd to two fully connected networks --- one for the policy and the other for the value. The architecture of our DCNN is identical to the one used by the DQN agent in \cite{Mnih2015} and the PPO paper \cite{DBLP:journals/corr/SchulmanWDRK17}.
 
-\begin{itemize}
-    \item Our network architecture consists of a deep convolutional neural network connected to two fully-connected layers on two branches. 
-    \item The motivation behind this is that the DCNN learns edges and features, which the fully-connected layers then use to each estimate the value function and policy gradient respectively.
-    \item Our DCNN consists of 3 blocks. 1) 4 in (of 84x84 image), 32 out, kernel size 8, stride 4. 2) 32 in, 64 out, kernel size 4, stride 2. 3) 64 in, 64 out, kernel size 3, stride 1.
-    \item This is the architecture we used.
-\end{itemize}
+The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frame of dimension 84x84. The second block has kernel 4, stride 2, and takes as input 32 frames. The third block has kernel size 3, stride 1, and takes as input 64 frames. 
+
+The fully connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened convolutional layer output, of dimension 3166, and the second block takes as input 512 and outputs either 1 or the number of actions, depending on whether it is the policy or value network. 
+
+\subsubsection{Pre-processing}
+In order to speed up network training, we preprocess the frames observed from the environment before passing them through the DCNN. We perform 3 operations if the environment is Breakout, and 4 if it is Pong. The original frames have dimension 3x210x160 (channels, height, width). The operations for Breakout are as follows: greyscale to get 210x160, crop to get 160x160, and resize to get 84x84. The operations for Pong are the same, with the addition of a $90^{\circ}$ clockwise rotation so that the orientation is the same as Breakout's.
 
 \begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{ppo-architecture}
-\caption{PPO network architecture (will create my own diagram)}
+    \centering
+    \subfloat[Network architecture.]{\includegraphics[width=0.55\textwidth]{architecture.png}\label{fig:f1}}
+    \hfill
+    \subfloat[Preprocessed frame.]{\includegraphics[width=0.35\textwidth]{preprocessed.png}\label{fig:f2}}
+    \caption{}
 \end{figure}
     
 \subsection{Implementation features}
@@ -322,7 +282,9 @@ Thinking that a factor in what is causing our network to converge in local optim
 \newpage
 \section{Evaluation}
 We discuss in this section the suitability of our approach to this project, the strengths and limitations of our algorithm, and the organisation of the project.
+
 \subsection{System strengths} 
+PPO is an on-policy algorithm which can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
 
 \subsection{System limitations}
 
