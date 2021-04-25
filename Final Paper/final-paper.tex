@@ -27,7 +27,7 @@
 \maketitle
 
 \begin{abstract}
-{\bf Background}: The recent success of reinforcement learning systems solving visually complex tasks, such as playing video games, means that such systems have potential for real-world applications, such as self-driving cars. To improve these systems, there is ongoing research into developing ways to apply knowledge gained from previous tasks to solve new tasks, such as from driving in a simulation to driving in the real world.
+{\bf Background}: The recent success of reinforcement learning systems solving visually complex tasks, such as playing video games, means that such systems have potential for real-world applications, such as self-driving cars. To improve these systems, there is ongoing research into developing ways to transfer knowledge gained from previous tasks to solve new tasks, such as from driving in a simulation to driving in the real world.
 
 {\bf Aims}: The aim of this project is to develop an understanding of reinforcement learning and its intersection with transfer learning by investigating the use of deep neural networks and pre-training. We aim to assess to what extent a current state-of-the-art architecture benefits from pre-training in the context of learning to play Atari video-games.
 
@@ -35,7 +35,7 @@
 
 {\bf Results}: 
 
-{\bf Conclusions}: Transfer learning is a promising method to prepare agents for environments where it has limited opportunities to interact with and learn from. By training agents on similar environments, we can build confidence that the agent will perform successfully when evaluated on the test environment. This is particularly useful in fields such as autonomous driving, where the vehicle must be able to adapt to various changes in the environment.
+{\bf Conclusions}: Transfer learning is a promising method to prepare agents for environments where it has limited opportunities to interact with and learn from. By training agents on similar environments, we can build confidence that the agent will perform successfully when evaluated on the test environment.
 \end{abstract}
 
 \begin{keywords}
@@ -104,45 +104,57 @@ One limitation of policy gradient methods is that it explores by sampling action
 \newpage
 \section{Solution}
 \subsection{Specification}
-To develop a reinforcement learning system that can successfully operate in its environment, the system must satisfy certain requirements. First, the system would initialise an environment and the agent in it. Second, a reinforcement learning algorithm would control the agent and interact with the environment by making observations and taking actions. Third, the environment would respond with a reward for each action taken by the agent. Finally, the algorithm would process the observations, actions, and rewards to iteratively improve the agent's behaviour.  
+When developing the reinforcement learning solution, we consider the following requirements:
+\begin{enumerate}
+    \item The Atari game environment and agent can be reset to an initial \emph{game state}. 
+    \item The game state changes only when the agent takes an action. We call this a \emph{step}. (At time step 0, the game state is the initial game state, since no action has been taken yet.)
+    \item After each step, the new game state is given, alongside additional information, such as the reward from taking the action, whether the game has finished, and the number of lives the agent has left. 
+    \item The game state and additional information can be pre-processed and used by a reinforcement learning algorithm to control the agent, and iteratively improve its behaviour.
+\end{enumerate}
 
-Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally, the generative model would control the agent in the new environment.  
+% A RL algorithm that learns to successfully play Atari games must satisfy certain requirements. First, the system would initialise an environment and the agent in it. Second, a reinforcement learning algorithm would control the agent and interact with the environment by making observations and taking actions. Third, the environment would respond with a reward for each action taken by the agent. Finally, the algorithm would process the observations, actions, and rewards to iteratively improve the agent's behaviour.  
+
+% Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally, the generative model would control the agent in the new environment.  
 
 \subsection{Tools used}
-We used the Python programming language for our implementation, since Python has numerous libraries for machine learning, with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used the PyTorch library, since this is currently what most researchers are using to implement their state-of-the-art papers. This library allowed us to implement existing architectures and easily make modifications to them, without the additional complexity of programming in low-level PyTorch. Additionally, we used OpenCV and Scikit-learn for image manipulation in our pre-processing steps.
+Fortunately for us, the first three requirements have already been implemented in Gym \cite{1606.01540}, an open-source library by OpenAI for developing and comparing reinforcement learning algorithms. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari 2600 games. This lets us focus on the fourth requirement, which is to develop the algorithm and pre-processing pipeline.
 
-So we wouldn't need to create our own API for Atari emulations, we used Gym \cite{1606.01540}, a toolkit developed by OpenAI for developing and comparing reinforcement learning algorithms. This allowed us to focus on implementing our reinforcement learning algorithm. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari games from the Arcade Learning Environment (ALE) \cite{bellemare13arcade}. The environments have a shared interface, so we can write general algorithms that will operate in any type of environment.
+For the implementation, we used the Python programming language. This is because Python has numerous open-source machine learning libraries with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used PyTorch \cite{NEURIPS2019_9015}, since this is currently what most researchers are using to implement their state-of-the-art papers. Additionally, we used the popular OpenCV \cite{opencv_library} open-source computer vision library for image pre-processing.
 
-For network training, we used Google Colab, which allows Python code to be written and executed in the browser. Google Colab does not require configuration and has free access to GPUs (including CUDA). There was the option to use Durham University's NVIDIA CUDA Centre (NCC), although we chose not to use it due to having no prior remote server experience or job queuing system experience (such as SLURM).
+Since much computing power is needed for agent-training, we make use of Colab \cite{}. Colab is a development environment by Google that allows Python code to be written and executed in the browser. More importantly, Colab provides free access to GPUs and has support for CUDA, which can speed up training. There was the option to use Durham University's NVIDIA CUDA Centre (NCC); although, we chose not to due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
 \subsection{Design}
-\subsubsection{Proximal Policy Optimisation (PPO) algorithm}
-The proximal policy optimisation (PPO) algorithm was chosen to be implemented due to its relative simplicity (compared to other policy gradient methods) and strong performance on the Atari benchmark \cite{DBLP:journals/corr/SchulmanWDRK17}. The most widely used version of PPO is PPO-Clip, so this is the version we implement.
+We chose to implement the proximal policy optimisation (PPO) algorithm \cite{DBLP:journals/corr/SchulmanWDRK17} and base our implementation on one by Seungeun Rho\footnote{https://github.com/seungeunrho/minimalRL}. PPO is a policy gradient method and tries to improve the policy by as much as possible during each learning update without collapsing performance. 
 
-PPO tries to improve the policy by as much as possible at each learning step without collapsing performance. The algorithm utilises clipping in the objective function to keep the new policy close to the old. The algorithm we implemented updates its policy parameters, $\theta$, by \[\theta_{k+1} = \arg \max_{\theta} \underset{s,a \sim \pi_{\theta_k}}{{\mathrm E}}\left[L(s,a,\theta_k, \theta)\right].\] The original algorithm by OpenAI takes multiple steps of minibatch stochastic gradient descent to maximise the objective, $L$, given by \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}  A^{\pi_{\theta_k}}(s,a), \;\;\text{clip}\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1+\epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),\] for small $\epsilon$. On the other hand, our implementation takes multiple steps of batch stochastic gradient descent.
+At the highest level, the algorithm plays a game until it is done a number of times --- for Breakout, a game is done when all 5 lives have been lost; whereas, for Pong, the game is done after the first player reaches 21 points. Each game played is called an \emph{episode}. During each episode, the algorithm alternates between gathering a batch of experience over a specified number of steps called the horizon, $T$, and updating the policy based on that batch alone. If the episode ends before $T$ steps of experience has been gathered, then the policy is updated with the incomplete batch regardless. Once the learning update has occurred, the batch is discarded.  
 
-A simplified version of $L$, which we write in the code, is as follows: $$L(s,a,\theta_k,\theta) = min \left( \frac{\pi_\theta(a|s)}{\pi_{\theta_k}(a|s)} A^{\pi_{\theta_k}}(s,a), g(\epsilon, A^{\pi_{\theta_k}}(s,a)) \right),$$ where $$g(\epsilon, A) = \begin{cases} (1+\epsilon)A & \mbox{if } A \geq 0 \\ (1-\epsilon)A & \mbox{if } A < 0. \end{cases}$$ When the advantage for the state-action pair is positive, the objective becomes \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\] Whereas, when the advantage for the state-action pair is negative, the objective becomes \[L(s,a,\theta_k,\theta) = \max\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\]
+A batch of experience consists of tuples. Each tuple consists of the following: the state before an action, the action taken, the reward from taking the action, the state after the action, the probability of taking the action given the policy, and whether or not the game is done. This information is necessary to calculate the policy update.
 
-A positive advantage will increase the objective if the action becomes more likely --- i.e., \(\pi_{\theta}(a|s)\) increases --- and a negative advantage will increase the objective if the action becomes less likely --- i.e., \(\pi_{\theta}(a|s)\) decreases. 
+% This information is necessary to perform batch stochastic gradient descent (SGD) to optimise the objective function, which we perform for a specified number of epochs.
 
-PPO's policy is stochastic, meaning that actions are sampled from the most recent policy. To learn which actions are better, the algorithm must \emph{explore} its environment. The ability to explore depends on taking actions that lead to less explored states, however, and how much PPO explores can be affected by how it trains and initial conditions. The more the algorithm trains, the less random its behaviour becomes, as its learning step pushes action probabilities to \emph{exploit} rewards that were found previously. Unfortunately, the policy can trap itself in local optima.
+\subsubsection{Proximal policy optimisation (PPO)}
+We implement the most widely used version of PPO, PPO-Clip, which utilises clipping in the objective function to keep the new policy close to the old. The algorithm updates its policy parameters at the $k$\textsuperscript{th} iteration, $\theta_k$,  by \[\theta_{k+1} = \arg \max_{\theta} \underset{s,a \sim \pi_{\theta_k}}{{\mathrm E}}\left[L(s,a,\theta_k, \theta)\right],\] where $L$ is the objective function given by \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}  A^{\pi_{\theta_k}}(s,a), \;\;\text{clip}\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1+\epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),\] for small $\epsilon$. 
 
-\subsubsection{Main training loop}
-Our PPO implementation is based on Seungeun Rho's implementation\footnote{https://github.com/seungeunrho/minimalRL}. The main training loop consists of one agent alternating between collecting experience over $t$ time-steps and performing $k$ steps of gradient descent to update network parameters. 
+The `clip(\dots)' term replaces the ratio $\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}$ by $1 - \epsilon$ if the ratio is less than $1 - \epsilon$, and by $1 + \epsilon$ if the ratio is greater than $1 + \epsilon$. Therefore, the term will always be in the range $\left[1 - \epsilon, 1 + \epsilon \right]$. When the advantage for the state-action pair is positive, the objective becomes \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\] Whereas, when the advantage for the state-action pair is negative, the objective becomes \[L(s,a,\theta_k,\theta) = \max\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\]
 
-When collecting experience, the agent samples an action from a state with probability distribution given by the current policy network. Since we are working with environments with a discrete number of possible actions, the probability distribution the policy returns is also discrete. In PyTorch, the distribution takes the form of a tensor, with the number of elements equal to the number of actions available. Each value corresponds to the probability of selecting the action with corresponding index. For example, if the value of the element at index 0 were 0.25, then the probability of selecting action 0, which could be to move left, is 0.25. Necessarily, the probabilities must sum up to 1 each time.
+A positive advantage will increase the objective function if the action becomes more likely --- i.e., \(\pi_{\theta}(a|s)\) increases --- and a negative advantage will increase the objective function if the action becomes less likely --- i.e., \(\pi_{\theta}(a|s)\) decreases \cite{SpinningUp2018}. The method we use to calculate advantages is generalised advantage estimation (GAE) \cite{schulman2018highdimensional}.
 
-When updating the network parameters, tuples of state, action, reward, and next state from the last $t$ time-steps are used. First, advantage estimates are calculated for the most recent $T$ timesteps, where $t$ specifies the time index in $[0, T]$, by the following generalised advantage estimation equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t+1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$. This is used to calculate the PPO-Clip objective, which we subtract from the smooth L1-loss of the value function. Smooth L1-loss creates a criterion that uses a squared term if the absolute element-wise error falls below beta, and an L1 term otherwise. This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}. The loss between $x$ and $y$ is as follows: $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i}$$ where $z_i$ is  given by the following:
+\subsubsection{Generalised advantage estimation (GAE)}
+Advantage estimates are calculated for the $T$ steps before an update, where $t = 0, 1, \dots, T$, by the following equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t-1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$.
+
+\subsubsection{Huber loss}
+In our implementation, the objective function with which we update the policy has an additional term. We must include a value function error term because we use a neural network architecture which shares parameters as function approximators for our policy and value functions. As the value function error term, we use the Huber loss function. We calculate the loss between batches of $x$ and $y$ by $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i},$$ where $z_i$ is given by the following:
 
 \[\begin{aligned}
 z_{i} =
 \begin{cases}
-0.5 (x_i - y_i)^2 / 1, & \text{if } |x_i - y_i| < 1 \\
-|x_i - y_i| - 0.5 * 1, & \text{otherwise }
+\frac{1}{2} (x_i - y_i)^2, & \text{if } |x_i - y_i| < 1 \\
+|x_i - y_i| - \frac{1}{2}, & \text{otherwise }.
 \end{cases}
 \end{aligned}\]
 
-Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
+\subsubsection{Pseudocode}
+The resulting pseudocode is as follows (needs updating):
 
 \begin{algorithm}[h]
     \caption{PPO-Clip pseudocode}
@@ -165,18 +177,25 @@ Finally, back-propagation is performed by the Adam optimisation algorithm \cite{
 \end{algorithmic}
 \end{algorithm}
 
+\subsubsection{Policy and value networks}
+As mentioned, we use a neural network architecture for our policy and value functions. The policy network is used to select actions for the agent to take, while the value network is used to evaluate the strength of those actions during learning. 
+
+The policy network takes as input the current state and returns a categorical distribution, which is a discrete probability distribution. The number of categories is equal to the number of actions available, and each category has a probability and corresponding action. We must sample from the distribution to obtain an action, such that actions with high probabilities are more likely to be sampled than actions with low probabilities. Necessarily, the probabilities must sum up to 1 overall. 
+
+The separate value network is used to evaluate the actions taken. The value network also takes as input the current state, but returns a singular value. 
+
 \subsubsection{Deep convolutional neural networks (DCNN)}
-We use a deep convolutional neural network as the main component of our policy gradient and value function estimators. There are typically 3 main types of layers that are used to build DCNN, which will be used throughout our solution. Convolutional layers perform convolution by sliding a filter across the image and computing the dot product of the filter with the image values at each point, this produces a two-dimensional activation map which gives the response of the filter at each point in the image. Many of these filters can be present in a single layer, each producing a separate activation map. As the network is trained, it will learn filters that activate when they see specific features within the image, such as circular patterns or vertical edges. We have two sets of fully-connected layers that occur after the convolutional layers. These have full connections to all activations in the previous layer. They allow us to shape the output of the network to fit the number of classes in the problem. For the policy, we shape the output to the number of actions available to the agent. Whereas, for the value, we shape the output to one.
+The parameters that the policy and value networks share are those of a deep convolutional neural network (DCNN). Using a DCNN allows our algorithm to learn directly from the game's pixels. A convolution is when a filter is applied to an input, such as an image, and gives an activation. Applying the filter many times across an image creates a feature map, which can highlight features such as shapes and edges. DCNNs can learn by themselves to detect specific features. Furthermore, they compress useful visual information which can are often further processed by fully-connected networks.
 
 \subsubsection{Network architecture}
-Our network architecture consists of a deep convolutional neural network connecetd to two fully connected networks --- one for the policy and the other for the value. The architecture of our DCNN is identical to the one used by the DQN agent in \cite{Mnih2015} and the PPO paper \cite{DBLP:journals/corr/SchulmanWDRK17}.
+Our network architecture consists of a deep convolutional neural network connecetd to two fully connected networks --- one is the policy network, and the other is the value network. The architecture of our DCNN is identical to the one used by the DQN agent in \cite{Mnih2015}.
 
 The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frame of dimension 84x84. The second block has kernel 4, stride 2, and takes as input 32 frames. The third block has kernel size 3, stride 1, and takes as input 64 frames. 
 
-The fully connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened convolutional layer output, of dimension 3166, and the second block takes as input 512 and outputs either 1 or the number of actions, depending on whether it is the policy or value network. 
+The fully connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened convolutional layer output, of dimension 3166, and the second block takes as input 512 and has 1 output if it is the value network, or the number of actions if it is the policy network. 
 
 \subsubsection{Pre-processing}
-In order to speed up network training, we preprocess the frames observed from the environment before passing them through the DCNN. We perform 3 operations if the environment is Breakout, and 4 if it is Pong. The original frames have dimension 3x210x160 (channels, height, width). The operations for Breakout are as follows: greyscale to get 210x160, crop to get 160x160, and resize to get 84x84. The operations for Pong are the same, with the addition of a $90^{\circ}$ clockwise rotation so that the orientation is the same as Breakout's.
+In order to speed up network training, it is not necessary to give the DCNN the original frame from the Atari game. The reason for this is because a lot of visual information is irrelevant --- colour, for example. As a result, we preprocess the frames observed from the environment before passing them through the DCNN. We perform 3 operations if the environment is Breakout, and 4 if it is Pong. The original frames have dimension 3x210x160 (channels, height, width). The operations for Breakout are as follows: greyscale to get 210x160, crop to get 160x160, and resize to get 84x84. When cropping, we lose the visual indicators for the scoreboard and the number of lives remaining or points, but these do not assist network training. The operations for Pong are the same, with the addition of a $90^{\circ}$ clockwise rotation so that the orientation is the same as Breakout's.
 
 \begin{figure}[h]
     \centering
@@ -189,6 +208,7 @@ In order to speed up network training, we preprocess the frames observed from th
 \subsection{Implementation features}
 \begin{itemize}
     \item Our implementation differs from the main paper in a number of ways.
+    \item Our implementation takes multiple steps of batch stochastic gradient descent (SDG) to maximise the objective.
     \item We used an architecture that shares parameters. We don't have an entropy term.
     \item We don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
     \item We did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective
@@ -199,6 +219,8 @@ In order to speed up network training, we preprocess the frames observed from th
     \item The original algorithm anneals the adam step size and clipping parameter which we don't.
     \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
 \end{itemize}
+
+
 
 \subsection{Verification}
 (This might be a description of testing rather than verification.)
@@ -275,7 +297,7 @@ In one run, we found that performance loss occurred immediately after the first 
 In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
 
 \subsection{Horizon experiments}
-Thinking that a factor in what is causing our network to converge in local optima is the batch size of the gradient update, we train additional agents with $T = 64$ and $T = 32$. Similar to previous agents, for $T = 64$, our agent converges to a mean score of 2.24 after over 80,000 timesteps and 2,000 learning steps. Videos show that the agent positions itself against the right wall and knows how to initialise the ball; it scores points only when the initialise ball directly lands on the stationary paddle.
+Thinking that a factor in what is causing our network to converge in local optima is the batch size of the gradient update, we train additional agents with $T = 64$ and $T = 32$. Similar to previous agents, for $T = 64$, our agent converges to a mean score of 2.24 after over 80,000 timesteps and 2,000 learning steps. Videos show that the agent positions itself against the right wall and knows how to initialise the ball; it scores points only when the initialise ball directly lands on the stationary paddle. The agent behaved similarly for $T = 32$, with performance collapse occurring after 265 episodes, where the agent no longer initialises the ball. 
 
 \subsection{Adam stepsize experiments}
 
@@ -284,9 +306,24 @@ Thinking that a factor in what is causing our network to converge in local optim
 We discuss in this section the suitability of our approach to this project, the strengths and limitations of our algorithm, and the organisation of the project.
 
 \subsection{System strengths} 
+save memory
+
+Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
+
+Huber loss makes system less sensitive to outliers
+This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}.
+
+This is due to its relative simplicity compared to other policy gradient methods and its strong performance on Atari games.
+
+
+% The original algorithm by OpenAI takes multiple steps of mini-batch stochastic gradient descent to maximise this objective. Our implementation takes multiple steps of batch stochastic gradient descent.
+
+% PPO's policy is stochastic, meaning that actions are sampled from the most recent policy. To learn which actions are better, the algorithm must \emph{explore} its environment. The ability to explore depends on taking actions that lead to less explored states, however, and how much PPO explores can be affected by how it trains and initial conditions. The more the algorithm trains, the less random its behaviour becomes, as its learning step pushes action probabilities to \emph{exploit} rewards that were found previously. 
+
 PPO is an on-policy algorithm which can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
 
 \subsection{System limitations}
+The lack of a entropy bonus 
 
 \subsection{Approach}
 The approach to the project was an ambitious one. The layout of the objectives --- of first developing a RL algorithm, and then investigating TL approaches --- was meant to eliminate the risk of having no solution were TL to have performed poorly. What was overlooked was a situation where it was the RL algorithm that performed poorly, so that TL could not even be considered. Having the intermediate and advanced objectives depend on the minimum objective in this way meant that the solution could not be continually improved over time. This was exacerbated by the fact that the advanced objective proposed the development of an architecture completely different to that of the minimum objective. This layout is akin to a waterfall development approach, whereas an agile approach, with some adjustments to the aims, would have been more appropriate. 
