@@ -121,7 +121,7 @@ Fortunately for us, the first three requirements have already been implemented i
 
 For the implementation, we used the Python programming language. This is because Python has numerous open-source machine learning libraries with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used PyTorch \cite{NEURIPS2019_9015}, since this is currently what most researchers are using to implement their state-of-the-art papers. Additionally, we used the popular OpenCV \cite{opencv_library} open-source computer vision library for image pre-processing.
 
-Since much computing power is needed for agent-training, we make use of Colab \cite{}. Colab is a development environment by Google that allows Python code to be written and executed in the browser. More importantly, Colab provides free access to GPUs and has support for CUDA, which can speed up training. There was the option to use Durham University's NVIDIA CUDA Centre (NCC); although, we chose not to due to having no prior remote server experience or job queuing system experience (such as SLURM).
+Since much computing power is needed for agent-training, we make use of Colab \cite{}. Colab is a development environment by Google that allows Python code to be written and executed in the browser. More importantly, Colab provides free access to GPUs and has support for CUDA, which we can use to speed up training. There was the option to use Durham University's NVIDIA CUDA Centre (NCC); although, we chose not to due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
 \subsection{Design}
 We chose to implement the proximal policy optimisation (PPO) algorithm \cite{DBLP:journals/corr/SchulmanWDRK17} and base our implementation on one by Seungeun Rho\footnote{https://github.com/seungeunrho/minimalRL}. PPO is a policy gradient method and tries to improve the policy by as much as possible during each learning update without collapsing performance. 
@@ -142,6 +142,64 @@ A positive advantage will increase the objective function if the action becomes 
 \subsubsection{Generalised advantage estimation (GAE)}
 Advantage estimates are calculated for the $T$ steps before an update, where $t = 0, 1, \dots, T$, by the following equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t-1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$.
 
+\subsubsection{Pseudocode}
+When combined, the resulting pseudocode of our implementation is as follows:
+
+\begin{algorithm}[h]
+    \caption{PPO-Clip pseudocode}
+    \label{alg1}
+\begin{algorithmic}[1]
+    \STATE Initialise policy function with random weights.
+    \STATE Initialise value function with random weights.
+    \FOR{episode $= 0,1,2,...$}
+    \STATE Reset environment.
+    \WHILE{episode is not done}
+    \FOR{$t = 0,1,2,...,T$} 
+    \STATE Run current policy $\pi_k = \pi(\theta_k)$ in environment.
+    \STATE Update batch of experience.
+    \ENDFOR
+    \STATE Compute advantage estimates, based on current value function.
+    \STATE Update the policy by maximising the objective function, via gradient ascent.
+    \STATE Update the value function, via gradient descent. 
+    \ENDWHILE
+    \ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Policy and value networks}
+As mentioned, we use a neural network architecture for our policy and value functions. The policy network is used to select actions for the agent to take, while the value network is used to evaluate the strength of those actions during learning. 
+
+The policy network takes as input the current state and returns a categorical distribution, which is a discrete probability distribution. The number of categories is equal to the number of actions available, and each category has a probability and corresponding action. We must sample from the distribution to obtain an action, such that actions with high probabilities are more likely to be sampled than actions with low probabilities. Necessarily, the probabilities must sum up to 1 overall. 
+
+The separate value network is used to evaluate the actions taken. The value network also takes as input the current state, but has a single output: the estimated value of that state. 
+
+\subsubsection{Deep convolutional neural networks (DCNN)}
+The parameters that the policy and value networks share are those of a deep convolutional neural network (DCNN). Using a DCNN allows our algorithm to learn directly from the game's pixels. DCNN often have convolutional layers followed by fully-connected layers. The convolutional layers apply convolutions to an input, often an image, which is when a filter is applied which gives an activation. Applying the filter many times across an input creates a feature map, which can highlight features such as shapes and edges. DCNNs can learn by themselves to detect specific features. Furthermore, they compress useful visual information which are often further processed by fully-connected networks. 
+
+\subsubsection{Network architecture}
+Our neural network architecture consists of a DCNN connected to two fully connected networks --- one for the policy network, and the other for the value network. The architecture of our DCNN is based on one used by the DQN agent in \cite{Mnih2015}.
+
+The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frames of dimension 84x84. The second block has kernel 4, stride 2, and has 32 inputs. The third block has kernel size 3, stride 1, and has 64 inputs. 
+
+The fully-connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened output of the convolutional layers, of dimension 3166, and the second block takes as input 512 and has 1 output if it is the value network, or the number of actions if it is the policy network. 
+
+\begin{figure}[h]
+    \centering
+    \subfloat[Network architecture.]{\includegraphics[width=0.55\textwidth]{architecture.png}\label{fig:f1}}
+    \hfill
+    \subfloat[Preprocessed frame.]{\includegraphics[width=0.35\textwidth]{preprocessed.png}\label{fig:f2}}
+    \caption{}
+\end{figure}
+
+\subsection{Implementation issues}
+\subsubsection{Stacking frames}
+The first implementation issue considers how to define the state to be used as input to the DCNN at each step. Simply using the game state is insufficient. A game state by itself is a singular, static image from which we cannot infer any information about what is moving. Conveying motion to the neural network is important, since it must understand the velocity of the ball and predict its trajectory for the agent to perform successfully. To tackle this issue, we define the state at each step to be a stack of the last 4 game states, or \emph{frames}. The fourth frame is the most recent --- the current game state --- while the first is the game state 3 actions (or steps) earlier. From this, we expect the DCNN to learn filters that detect the changed positions between frames to infer motion, and take actions accordingly.
+
+\subsubsection{Pre-processing frames}
+The second implementation issue considers how to speed up network training without sacrificing performance. Applying convolutions is computationally expensive, more so the larger the image, and the time spent doing so adds up. The game state is an image of height, width, channel $210 \times 160 \times 3$; however, some of this information can be discarded or compressed. Since colour plays no important role in predicting the movement of the ball, we can convert the image to greyscale and obtain a new image with dimension $210 \times 160$. Similarly, the visual indicators for the score and number of lives left are redundant since we also keep track of these values in the algorithm. We can crop these indicators out, producing a new image with dimension $160 \times 160$. Additionally, if the ball and paddle can both be identified at lower resolutions, then there should be no loss of information, and in theory the performance of the DCNN should be the same. As a result, we down sample the image, which changes the number of pixels, to obtain a new $84 \times 84$ image. 
+
+For Pong, there is an additional step, which is to rotate the image $90^{\circ}$ clockwise. This is so that the orientation of the paddle would be the same as in Breakout. We expect this to have been useful had transfer learning approaches had been implemented for learning between the two games.
+
 \subsubsection{Huber loss}
 In our implementation, the objective function with which we update the policy has an additional term. We must include a value function error term because we use a neural network architecture which shares parameters as function approximators for our policy and value functions. As the value function error term, we use the Huber loss function. We calculate the loss between batches of $x$ and $y$ by $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i},$$ where $z_i$ is given by the following:
 
@@ -153,71 +211,11 @@ z_{i} =
 \end{cases}
 \end{aligned}\]
 
-\subsubsection{Pseudocode}
-The resulting pseudocode is as follows (needs updating):
-
-\begin{algorithm}[h]
-    \caption{PPO-Clip pseudocode}
-    \label{alg1}
-\begin{algorithmic}[1]
-    \STATE Input: initial policy parameters $\theta_0$, initial value function parameters $\phi_0$
-    \FOR{$k = 0,1,2,...$} 
-    \STATE Collect set of trajectories ${\mathcal D}_k = \{\tau_i\}$ by running policy $\pi_k = \pi(\theta_k)$ in the environment.
-    \STATE Compute rewards-to-go $\hat{R}_t$.
-    \STATE Compute advantage estimates, $\hat{A}_t$ (using generalised advantage estimation) based on the current value function $V_{\phi_k}$.
-    \STATE Update the policy by maximizing the PPO-Clip objective:
-        \begin{equation*}
-        \theta_{k+1} = \arg \max_{\theta} \frac{1}{|{\mathcal D}_k| T} \sum_{\tau \in {\mathcal D}_k} \sum_{t=0}^T \min\left(
-            \frac{\pi_{\theta}(a_t|s_t)}{\pi_{\theta_k}(a_t|s_t)}  A^{\pi_{\theta_k}}(s_t,a_t), \;\;
-            g(\epsilon, A^{\pi_{\theta_k}}(s_t,a_t))
-        \right),
-        \end{equation*}
-        via batch stochastic gradient ascent with Adam.
-    \ENDFOR
-\end{algorithmic}
-\end{algorithm}
-
-\subsubsection{Policy and value networks}
-As mentioned, we use a neural network architecture for our policy and value functions. The policy network is used to select actions for the agent to take, while the value network is used to evaluate the strength of those actions during learning. 
-
-The policy network takes as input the current state and returns a categorical distribution, which is a discrete probability distribution. The number of categories is equal to the number of actions available, and each category has a probability and corresponding action. We must sample from the distribution to obtain an action, such that actions with high probabilities are more likely to be sampled than actions with low probabilities. Necessarily, the probabilities must sum up to 1 overall. 
-
-The separate value network is used to evaluate the actions taken. The value network also takes as input the current state, but returns a singular value. 
-
-\subsubsection{Deep convolutional neural networks (DCNN)}
-The parameters that the policy and value networks share are those of a deep convolutional neural network (DCNN). Using a DCNN allows our algorithm to learn directly from the game's pixels. A convolution is when a filter is applied to an input, such as an image, and gives an activation. Applying the filter many times across an image creates a feature map, which can highlight features such as shapes and edges. DCNNs can learn by themselves to detect specific features. Furthermore, they compress useful visual information which can are often further processed by fully-connected networks.
-
-\subsubsection{Network architecture}
-Our network architecture consists of a deep convolutional neural network connecetd to two fully connected networks --- one is the policy network, and the other is the value network. The architecture of our DCNN is identical to the one used by the DQN agent in \cite{Mnih2015}.
-
-The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frame of dimension 84x84. The second block has kernel 4, stride 2, and takes as input 32 frames. The third block has kernel size 3, stride 1, and takes as input 64 frames. 
-
-The fully connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened convolutional layer output, of dimension 3166, and the second block takes as input 512 and has 1 output if it is the value network, or the number of actions if it is the policy network. 
-
-\subsubsection{Pre-processing}
-In order to speed up network training, it is not necessary to give the DCNN the original frame from the Atari game. The reason for this is because a lot of visual information is irrelevant --- colour, for example. As a result, we preprocess the frames observed from the environment before passing them through the DCNN. We perform 3 operations if the environment is Breakout, and 4 if it is Pong. The original frames have dimension 3x210x160 (channels, height, width). The operations for Breakout are as follows: greyscale to get 210x160, crop to get 160x160, and resize to get 84x84. When cropping, we lose the visual indicators for the scoreboard and the number of lives remaining or points, but these do not assist network training. The operations for Pong are the same, with the addition of a $90^{\circ}$ clockwise rotation so that the orientation is the same as Breakout's.
-
-\begin{figure}[h]
-    \centering
-    \subfloat[Network architecture.]{\includegraphics[width=0.55\textwidth]{architecture.png}\label{fig:f1}}
-    \hfill
-    \subfloat[Preprocessed frame.]{\includegraphics[width=0.35\textwidth]{preprocessed.png}\label{fig:f2}}
-    \caption{}
-\end{figure}
-    
-\subsection{Implementation features}
 \begin{itemize}
-    \item Our implementation differs from the main paper in a number of ways.
-    \item Our implementation takes multiple steps of batch stochastic gradient descent (SDG) to maximise the objective.
-    \item We used an architecture that shares parameters. We don't have an entropy term.
-    \item We don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
-    \item We did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective
-    \item We used our own convolutional neural network.
+    
     \item We tried frame skipping.
-    \item We did preprocessing of frames
     \item We tried resetting after end of each life. 
-    \item The original algorithm anneals the adam step size and clipping parameter which we don't.
-    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
+    
 \end{itemize}
 
 
@@ -286,7 +284,7 @@ Initial training was done using hyperparameters that were identical, where possi
             GAE parameter $(\lambda)$     & $0.95$ \\
             Number of actors              & $1$ \\
             Clipping parameter $\epsilon$ & $0.1$ \\
-            VF coeff. $c_1$               & --- \\
+            VF coeff. $c_1$               & $1$ \\
             Entropy coeff. $c_2$          & ---
         \end{tabular}
      \end{subtable}
@@ -315,6 +313,7 @@ This is used because it is less sensitive to outliers than mean-squared error lo
 
 This is due to its relative simplicity compared to other policy gradient methods and its strong performance on Atari games.
 
+discuss ReLU
 
 % The original algorithm by OpenAI takes multiple steps of mini-batch stochastic gradient descent to maximise this objective. Our implementation takes multiple steps of batch stochastic gradient descent.
 
@@ -324,6 +323,13 @@ PPO is an on-policy algorithm which can be used for environments with either dis
 
 \subsection{System limitations}
 The lack of a entropy bonus 
+\begin{itemize}
+    \item The original algorithm anneals the adam step size and clipping parameter which we don't.
+    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
+    \item We don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
+    \item We did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective
+\end{itemize}
+
 
 \subsection{Approach}
 The approach to the project was an ambitious one. The layout of the objectives --- of first developing a RL algorithm, and then investigating TL approaches --- was meant to eliminate the risk of having no solution were TL to have performed poorly. What was overlooked was a situation where it was the RL algorithm that performed poorly, so that TL could not even be considered. Having the intermediate and advanced objectives depend on the minimum objective in this way meant that the solution could not be continually improved over time. This was exacerbated by the fact that the advanced objective proposed the development of an architecture completely different to that of the minimum objective. This layout is akin to a waterfall development approach, whereas an agile approach, with some adjustments to the aims, would have been more appropriate. 
