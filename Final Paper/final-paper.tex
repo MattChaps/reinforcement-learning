@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 % \usepackage{subfig}
 \usepackage{subcaption}
+\usepackage{amsmath}
 \graphicspath{ {./images/} }
 
 \citationmode{abbr}
@@ -85,15 +86,25 @@ The advanced objectives were to develop a novel architecture and workflow for pr
 \newpage
 \section{Related work}
 \label{section:related-work}
-Many academic papers have been published introducing RL algorithms that learn to perform successfully in its environment. For an agent to succeed, it must learn a map, $f: \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$, that maps from state-action pairs to values, and make informed decisions. Most existing solutions learn this map by either value-based methods or policy gradient methods. 
+Many academic papers have been published introducing RL algorithms that learn to succeed in an environment. For these algorithms, learning to succeed is framed as finding the policy which maximises expected return --- this is the goal in RL. Most existing solutions find this optimal policy by either value-based methods or policy gradient methods. 
 
 \subsection{Value-based methods}
-The value-based class of reinforcement learning algorithms aims to build a value function, which subsequently lets us define a policy. One of the simplest and most popular value-based algorithms is the Q-learning algorithm \cite{Watkins1992}. The basic version of Q-learning keeps a lookup table of values with one entry for every state-action pair. In order to learn the optimal Q-value function, the Q-learning algorithm makes use of the Bellman equation for the Q-value function \cite{R-352-PR}, which has a unique solution under certain conditions. This idea was expanded to involve approximating the Q-values from experiences gathered \cite{10.5555/2998828.2998976}, and parametrising the Q-values with a neural network whose parameters are updated by stochastic gradient descent (SGD) (or a variant) by maximising a loss function \cite{10.1007/11564096_32}. A breakthrough approach used deep convolutional neural networks and a replay memory to play Atari games by learning from pixels and a wide range of past experiences; this approach was the deep Q-network (DQN) algorithm \cite{DBLP:journals/corr/MnihKSGAWR13}. More recent approaches made improvements to the DQN algorithm, such as duelling DQN \cite{DBLP:journals/corr/WangFL15} and double DQN \cite{DBLP:journals/corr/HasseltGS15}. Rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} is a combination of the many improvements to the DQN algorithm. For simple environments, a unique solution to the optimal Q-value function may be found; whereas, for complex environments, such as video games, modern approaches use neural networks to approximate the Q-values, which are then used to define a policy. 
+Value-based methods aim to build value functions which help define a policy. The \emph{value function}, $V^{\pi}(s)$, gives the expected return starting from state $s$ and following policy $\pi$ thereafter, which is the map $V^{\pi}(s): \mathcal{S} \rightarrow \mathbb{R}$. And, the \emph{action-value function}, $Q^{\pi}(s,a)$, gives the expected return starting from state $s$, taking action $a$, and following policy $\pi$ thereafter, which is the map $Q^{\pi}(s,a): \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$. From this latter function, also known as the \emph{Q-value function}, we can derive one of the foundational value-based algorithms, the Q-learning algorithm \cite{Watkins1992}.
 
-One limitation with value-based approaches is that these types of algorithms are not well-suited to deal with large action spaces. In the Atari game Gravitar which has 18 actions, a DQN agent achieves a mean score of 306.7, compared to 2672 by a human \cite{Mnih2015}. 
+The goal of Q-learning is to learn an optimal Q-value function, $Q^*(s,a)$, which is the same as $Q^{\pi}(s,a)$ except the policy is \emph{optimal}. Given $Q^*(s,a)$, the optimal policy is to always select the action with the highest Q-value at each state. The basic version of Q-learning does this by keeping a lookup table of Q-values with one entry for every state-action pair \cite{DBLP:journals/corr/abs-1811-12560}. These Q-values can be found optimally by solving the Bellman equation \cite{R-352-PR} $$Q^*(s,a) = \underset{s'\sim P}{\mathbb{E}} \left[{r(s,a) + \gamma \underset{a'}{\max} Q^*(s',a')}\right]$$ which recursively relates each state-action pair. For some environments, however, solving the Bellman equation is infeasible. Instead, the optimal Q-values must be estimated.
+
+Fitted Q-learning \cite{10.5555/2998828.2998976} estimates the optimal Q-values based on experience gathered so far, and iteratively updates them. Neural fitted Q-learning (NFQ) \cite{10.1007/11564096_32} improves on this by parametrising the Q-values with a neural network, which computes more efficiently. The Q-network takes as input a state and outputs different Q-values for each of the possible actions. The breakthrough deep Q-network (DQN) algorithm \cite{Mnih2015} uses a deep convolutional neural network (DCNN) architecture to take pixels as input to learn to play Atari games. More recent approaches made improvements to DQN: duelling DQN \cite{DBLP:journals/corr/WangFL15} helps generalise learning across actions; double DQN \cite{DBLP:journals/corr/HasseltGS15} reduces overestimating action values; and, rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} combines these improvements to achieve state-of-the-art performance.
+
+Despite these improvements, there remain limitations with value-based methods. Primarily, these methods poorly handle environments with large action spaces. In the Atari game Gravitar which has 18 actions, a DQN agent achieves a mean score of 306.7 compared to 2672 achieved by a human \cite{Mnih2015}. Another key limitation is that these methods cannot explicitly learn stochastic policies, while policy gradient methods can.
 
 \subsection{Policy gradient methods}
-Policy gradient methods optimise a performance objective (typically the expected cumulative reward) by finding a good policy thanks to variants of stochastic gradient ascent with respect to the policy parameters. The gradient of the performance objective with respect to the policy parameters is called the policy gradient. The simplest policy gradient estimator is derived by using either the expected finite-horizon undiscounted return or expected infinite-horizon discounted return as the performance objective; this results in the REINFORCE algorithm \cite{Williams1992}. Deep deterministic policy gradient (DDPG) \cite{lillicrap2019continuous} extends this approach to deterministic policies to allow DQN algorithms to overcome the restriction of discrete actions. Another common approach is to use an actor-critic architecture that consists of two parts: an actor and a critic \cite{Konda2000}. The actor refers to the policy and the critic to the estimate of a value function (e.g., the Q-value function). In deep RL, both the actor and the critic can be represented by non-linear neural network function approximators \cite{mnih2016asynchronous}. More advanced approaches incorporate an advantage function to describe how much better or worse an action is than other actions on average (relative to the current policy) \cite{schulman2018highdimensional}, and use special constraints, expressed in terms of KL-Divergence \cite{kullback1951information}, on how close the new and old policies are allowed to be \cite{DBLP:journals/corr/SchulmanLMJA15}. Proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} builds on the latter approach by relying on specialised clipping in the objective function. Typically, these approaches rely on tricks to keep new policies close to the old. 
+Policy gradient methods define a stochastic policy by an objective function, such as $V^{\pi}(s)$, and aim to optimise this function by calculating the gradient --- known as the policy gradient. Given $V^{\pi_{\theta}}(s)$ to define the policy with parameters $\theta$, differentiating the policy yields the following fundamental result: $$\nabla_{\theta} V^{\pi_{\theta}}(s) = \underset{\tau \sim \pi_{\theta}}{\mathbb{E}} \left[{\sum_{t=0}^{T} \nabla_{\theta} \log \pi_{\theta}(a_t |s_t) R(\tau)}\right].$$ To estimate this policy gradient, we must gather expereince by following the current policy. When calculating the sum, it has been shown that using either the finite-horizon undiscounted return, $R(\tau) = \sum_{t=0}^T r_t$, or the infinite-horizon discounted return, $R(\tau) = \sum_{t=0}^{\infty} \gamma^t r_t$ does not affect performance. Afterwards, we can use the calcualted estimate to update the policy parameters $\theta$.
+
+The simplest estimator is a sample mean over the experience, since the expression for the policy gradient is an expectation. This is known as the REINFORCE algorithm \cite{Williams1992}. A variant of the algorithm shows that the policy gradient can also be expressed using `reward-to-go', $\hat{R}_t \doteq \sum_{t'=t}^T R(s_{t'}, a_{t'}, s_{t'+1})$, which says that only rewards that come after an action matter \cite{SpinningUp2018}. Another variant reduces the variance of the estimate while keeping the expectation the same. It achieves this by expressing the gradient with an advantage function, which describes how much better or worse an action is than others on average \cite{SpinningUp2018}. This requires learning a value function alongside the policy, ands leads to actor-critic algorithms. 
+
+CONTINUE HERE
+
+The actor-critic architecture that consists of two parts: an actor and a critic \cite{Konda2000}. The actor refers to the policy and the critic to the estimate of a value function (e.g., the Q-value function). In deep RL, both the actor and the critic can be represented by non-linear neural network function approximators \cite{mnih2016asynchronous}. More advanced approaches incorporate an advantage function to describe how much better or worse an action is than other actions on average (relative to the current policy) \cite{schulman2018highdimensional}, and use special constraints, expressed in terms of KL-Divergence \cite{kullback1951information}, on how close the new and old policies are allowed to be \cite{DBLP:journals/corr/SchulmanLMJA15}. Proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} builds on the latter approach by relying on specialised clipping in the objective function. Typically, these approaches rely on tricks to keep new policies close to the old. 
 
 One limitation of policy gradient methods is that it explores by sampling actions according to the latest version of its stochastic policy. The amount of randomness in action selection depends on both initial conditions and the training procedure. Over the course of training, the policy typically becomes progressively less random, as the update rule encourages it to exploit rewards that it has already found. This may cause the policy to get trapped in local optima. Additionally, even seemingly small differences in parameter space can have very large differences in performance --- so a single bad step can collapse the policy performance. This has drastic impacts on the algorithms' sample efficiency.
 
@@ -256,15 +267,15 @@ Initial training was done using hyperparameters that were identical, where possi
             Hyperparameter                & Value \\
             \hline 
             Horizon (T)                   & $128$ \\ 
-            Adam stepsize                 & $2.5 \times 10^{-4} \times \alpha$ \\
+            Adam stepsize                 & $\mathbf{2.5 \times 10^{-4} \times \alpha}$ \\
             Num. epochs                   & $3$ \\
-            Minibatch size                & $32 \times 8$ \\
+            Minibatch size                & $\mathbf{32 \times 8}$ \\
             Discount $(\gamma)$           & $0.99$ \\
             GAE parameter $(\lambda)$     & $0.95$ \\
-            Number of actors              & $8$ \\
-            Clipping parameter $\epsilon$ & $0.1 \times \alpha$ \\
+            Number of actors              & $\mathbf{8}$ \\
+            Clipping parameter $\epsilon$ & $\mathbf{0.1 \times \alpha}$ \\
             VF coeff. $c_1$               & $1$ \\
-            Entropy coeff. $c_2$          & $0.01$
+            Entropy coeff. $c_2$          & $\mathbf{0.01}$
         \end{tabular}
        
     \end{subtable}
@@ -277,15 +288,15 @@ Initial training was done using hyperparameters that were identical, where possi
             Hyperparameter                & Value \\
             \hline 
             Horizon (T)                   & $128$ \\ 
-            Adam stepsize                 & $2.5 \times 10^{-4}$ \\
+            Adam stepsize                 & $\mathbf{2.5 \times 10^{-4}}$ \\
             Num. epochs                   & $3$ \\
-            Minibatch size                & --- \\
+            Minibatch size                & \textbf{---} \\
             Discount $(\gamma)$           & $0.99$ \\
             GAE parameter $(\lambda)$     & $0.95$ \\
-            Number of actors              & $1$ \\
-            Clipping parameter $\epsilon$ & $0.1$ \\
+            Number of actors              & $\mathbf{1}$ \\
+            Clipping parameter $\epsilon$ & $\mathbf{0.1}$ \\
             VF coeff. $c_1$               & $1$ \\
-            Entropy coeff. $c_2$          & ---
+            Entropy coeff. $c_2$          & \textbf{---}
         \end{tabular}
      \end{subtable}
 \end{table}
