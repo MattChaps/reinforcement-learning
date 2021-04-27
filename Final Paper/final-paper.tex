@@ -102,7 +102,7 @@ Policy gradient methods define a stochastic policy by an objective function, suc
 
 The simplest estimator is a sample mean over the experience, since the expression for the policy gradient is an expectation. When calculating the sum, it has been shown that using either the finite-horizon undiscounted return, $R(\tau) = \sum_{t=0}^T r_t$, or the infinite-horizon discounted return, $R(\tau) = \sum_{t=0}^{\infty} \gamma^t r_t$ has the same performance. This is known as the REINFORCE algorithm \cite{Williams1992}. A variant of the algorithm shows that the policy gradient can also be expressed using `reward-to-go', $\hat{R}_t \doteq \sum_{t'=t}^T R(s_{t'}, a_{t'}, s_{t'+1})$, which says that only rewards that come after an action matter \cite{SpinningUp2018}. 
 
-Actor-critic algorithms \cite{Konda2000} build on the discovery that the policy gradient can be re-expressed, to reduce variance whilst keeping the expectation the same, by learning a value function (the critic) alongside the policy (the actor). Asynchronous advantage actor-critic (A3C) \cite{mnih2016asynchronous} calculates an advantage function, which describes how much better or worse an action is than others on average, and trains actors and critics in parallel to stabilise training. Trust region policy optimisation (TRPO) \cite{DBLP:journals/corr/SchulmanLMJA15} similarly tries to prevent the policy performance collapsing, and does so by taking the largest possible update that satisfies a KL-divergence constraint \cite{kullback1951information}. Due to the complexity of TRPO, however, the simpler proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} was developed, which performs just as well without having to make second-order calculations. As with DQN, these recent methods use deep neural networks as function approximators for the policy and value functions.
+Actor-critic algorithms \cite{Konda2000} build on the discovery that the policy gradient can be re-expressed, to reduce variance whilst keeping the expectation the same, by learning a value function (the critic) alongside the policy (the actor). Asynchronous advantage actor-critic (A3C) \cite{mnih2016asynchronous} calculates an advantage function, which describes how much better or worse an action is than others on average, and trains actors and critics in parallel to stabilise training. Trust region policy optimisation (TRPO) \cite{DBLP:journals/corr/SchulmanLMJA15} similarly tries to prevent the policy performance collapsing, and does so by taking the largest possible update that satisfies a KL-divergence constraint \cite{kullback1951information}. Due to the complexity of TRPO, however, the simpler proximal policy optimisation (PPO) \cite{DBLP:journals/corr/SchulmanWDRK17} was developed, which performs just as well without having to make second-order calculations. As with DQN, these recent methods use deep neural networks (DNNs) as function approximators for the policy and value functions.
 
 Most of the limitations of policy gradient methods concern performance collapse --- i.e., when the algorithm ceases to learn. This occurs when the policy, or objective function, gets stuck at a local optimum. This happens because the policy becomes less random after lots of training, due to exploiting rewards that have already been found. Nonetheless, policy gradient methods are methods of learning that more closely resemble learning in nature than value-based methods.
 
@@ -113,84 +113,79 @@ Most of the limitations of policy gradient methods concern performance collapse 
 \newpage
 \section{Solution}
 \subsection{Specification}
-When developing the reinforcement learning solution, we consider the following requirements:
-\begin{enumerate}
-    \item The Atari game environment and agent can be reset to an initial \emph{game state}. 
-    \item The game state changes only when the agent takes an action. We call this a \emph{step}. (At time step 0, the game state is the initial game state, since no action has been taken yet.)
-    \item After each step, the new game state is given, alongside additional information, such as the reward from taking the action, whether the game has finished, and the number of lives the agent has left. 
-    \item The game state and additional information can be pre-processed and used by a reinforcement learning algorithm to control the agent, and iteratively improve its behaviour.
-\end{enumerate}
-
-% A RL algorithm that learns to successfully play Atari games must satisfy certain requirements. First, the system would initialise an environment and the agent in it. Second, a reinforcement learning algorithm would control the agent and interact with the environment by making observations and taking actions. Third, the environment would respond with a reward for each action taken by the agent. Finally, the algorithm would process the observations, actions, and rewards to iteratively improve the agent's behaviour.  
-
-% Additionally, there is another set of requirements for developing a system to pre-train reinforcement learning agents. First, the trajectories from one or more reinforcement learning agents operating in different environments would be generated. Second, a generative model would learn the agents' behaviour by predicting the actions they took. Finally, the generative model would control the agent in the new environment.  
+To develop a solution that lets an RL algorithm learn to play Atari games successfully, the solution must satisfy certain requirements. First, the solution should be able to load an Atari game and reset the environment and agent to an initial \emph{game state}. Second, to make designing an algorithm to control the agent and interact with the environment easier, the solution should change the game state only when the agent takes an action. We call this a \emph{step}. (At time step 0, the game state is the initial game state; and, at time step 1, the game state is that after the first action, and so on.) Third, each step should return the new game state alongside additional information, such as the reward from taking the action, whether the game has finished, and the number of lives the agent has left. Fourth, the game states and additional information should be able to be collected, pre-processed, and used by a reinforcement learning algorithm to control the agent and iteratively improve its behaviour.
 
 \subsection{Tools used}
-Fortunately for us, the first three requirements have already been implemented in Gym \cite{1606.01540}, an open-source library by OpenAI for developing and comparing reinforcement learning algorithms. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari 2600 games. This lets us focus on the fourth requirement, which is to develop the algorithm and pre-processing pipeline.
+Fortunately, the first three requirements are already implemented in Gym \cite{1606.01540}, an open-source library by OpenAI for developing and comparing reinforcement learning algorithms. Gym provides a collection of environments, including control theory problems, physics simulations, and Atari 2600 games. This lets us focus on the fourth requirement, which is to design and implement our algorithm and pre-processing pipeline.
 
-For the implementation, we used the Python programming language. This is because Python has numerous open-source machine learning libraries with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used PyTorch \cite{NEURIPS2019_9015}, since this is currently what most researchers are using to implement their state-of-the-art papers. Additionally, we used the popular OpenCV \cite{opencv_library} open-source computer vision library for image pre-processing.
+For the solution, we used the Python programming language. This is because Python has numerous open-source machine learning libraries with support for deep learning and reinforcement learning. Examples of libraries are Keras, PyTorch, and TensorFlow. Of these, we used PyTorch \cite{NEURIPS2019_9015}, since this is currently what most researchers are using to implement their state-of-the-art papers. Additionally, we used the popular OpenCV \cite{opencv_library} open-source computer vision library for image pre-processing.
 
-Since much computing power is needed for agent-training, we make use of Colab \cite{}. Colab is a development environment by Google that allows Python code to be written and executed in the browser. More importantly, Colab provides free access to GPUs and has support for CUDA, which we can use to speed up training. There was the option to use Durham University's NVIDIA CUDA Centre (NCC); although, we chose not to due to having no prior remote server experience or job queuing system experience (such as SLURM).
+Since much computing power is needed for agent-training, we make use of Colab \cite{Bisong2019}. Colab is a development environment by Google that allows Python code to be written and executed in the browser. More importantly, Colab provides free access to GPUs and has support for CUDA, which we can use to speed up training. There was the option to use Durham University's NVIDIA CUDA Centre (NCC); although, we chose not to due to having no prior remote server experience or job queuing system experience (such as SLURM).
 
 \subsection{Design}
-We chose to implement the proximal policy optimisation (PPO) algorithm \cite{DBLP:journals/corr/SchulmanWDRK17} and base our implementation on one by Seungeun Rho\footnote{https://github.com/seungeunrho/minimalRL}. PPO is a policy gradient method and tries to improve the policy by as much as possible during each learning update without collapsing performance. 
+We implemented the proximal policy optimisation (PPO) algorithm \cite{DBLP:journals/corr/SchulmanWDRK17} and base our design on an implementation by Seungeun Rho\footnote{https://github.com/seungeunrho/minimalRL}. PPO is a policy gradient method that tries to improve the policy by as much as possible during each learning update without collapsing performance. 
 
-At the highest level, the algorithm plays a game until it is done a number of times --- for Breakout, a game is done when all 5 lives have been lost; whereas, for Pong, the game is done after the first player reaches 21 points. Each game played is called an \emph{episode}. During each episode, the algorithm alternates between gathering a batch of experience over a specified number of steps called the horizon, $T$, and updating the policy based on that batch alone. If the episode ends before $T$ steps of experience has been gathered, then the policy is updated with the incomplete batch regardless. Once the learning update has occurred, the batch is discarded.  
+% At the highest level, the algorithm plays a game until it is done a number of times --- for Breakout, a game is done when all 5 lives have been lost; whereas, for Pong, the game is done after the first player reaches 21 points. Each game played is called an \emph{episode}. During each episode, the algorithm alternates between gathering a batch of experience over a specified number of steps called the horizon, $T$, and updating the policy based on that batch alone. If the episode ends before $T$ steps of experience has been gathered, then the policy is updated with the incomplete batch regardless. Once the learning update has occurred, the batch is discarded.  
 
-A batch of experience consists of tuples. Each tuple consists of the following: the state before an action, the action taken, the reward from taking the action, the state after the action, the probability of taking the action given the policy, and whether or not the game is done. This information is necessary to calculate the policy update.
+% A batch of experience consists of tuples. Each tuple consists of the following: the state before an action, the action taken, the reward from taking the action, the state after the action, the probability of taking the action given the policy, and whether or not the game is done. This information is necessary to calculate the policy update.
 
 % This information is necessary to perform batch stochastic gradient descent (SGD) to optimise the objective function, which we perform for a specified number of epochs.
 
 \subsubsection{Proximal policy optimisation (PPO)}
-We implement the most widely used version of PPO, PPO-Clip, which utilises clipping in the objective function to keep the new policy close to the old. The algorithm updates its policy parameters at the $k$\textsuperscript{th} iteration, $\theta_k$,  by \[\theta_{k+1} = \arg \max_{\theta} \underset{s,a \sim \pi_{\theta_k}}{{\mathrm E}}\left[L(s,a,\theta_k, \theta)\right],\] where $L$ is the objective function given by \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}  A^{\pi_{\theta_k}}(s,a), \;\;\text{clip}\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1+\epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),\] for small $\epsilon$. 
+We implemented the most widely used version of PPO, PPO-Clip, which utilises clipping in the objective function to keep the new policy close to the old. Given policy $\pi_{\theta_{k}}$ with parameters $\theta_k$ after $k$ policy update iterations, the algorithm updates its policy parameters in the next iteration by \[\theta_{k+1} = \arg \max_{\theta} \underset{s,a \sim \pi_{\theta_k}}{\mathbb{E}}\left[L(s,a,\theta_k, \theta)\right],\] where $L$ denotes the objective function, which uses states $s$ and actions $a$ (gathered from experience) as well as new policy $\theta$ in its calculation. The objective function $L$ is simply the minimum between two terms, and is given by \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}  A^{\pi_{\theta_k}}(s,a), \;\;\text{clip}\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, 1 - \epsilon, 1+\epsilon \right) A^{\pi_{\theta_k}}(s,a) \right),\] for small $\epsilon$, where $\pi_{\theta}$ is the new policy and $A^{\pi_{\theta_k}}$ is the advantage function with respect to the old policy $\pi_{\theta_{k}}$. The ratio $\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}$ is the probability ratio between new and old policies. This ratio is kept in the range $\left[1 - \epsilon, 1 + \epsilon \right]$ by the `clip' term to prevent performance collapse. If the ratio is too low, it is replaced by $1 - \epsilon$; and, if the ratio is too large, it becomes $1 + \epsilon$. 
 
-The `clip(\dots)' term replaces the ratio $\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}$ by $1 - \epsilon$ if the ratio is less than $1 - \epsilon$, and by $1 + \epsilon$ if the ratio is greater than $1 + \epsilon$. Therefore, the term will always be in the range $\left[1 - \epsilon, 1 + \epsilon \right]$. When the advantage for the state-action pair is positive, the objective becomes \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\] Whereas, when the advantage for the state-action pair is negative, the objective becomes \[L(s,a,\theta_k,\theta) = \max\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\]
+For better intuition, when the advantage for the state-action pair is positive, the objective becomes \[L(s,a,\theta_k,\theta) = \min\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 + \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\] Whereas, when the advantage for the state-action pair is negative, the objective becomes \[L(s,a,\theta_k,\theta) = \max\left(\frac{\pi_{\theta}(a|s)}{\pi_{\theta_k}(a|s)}, (1 - \epsilon) \right)  A^{\pi_{\theta_k}}(s,a).\]
 
-A positive advantage will increase the objective function if the action becomes more likely --- i.e., \(\pi_{\theta}(a|s)\) increases --- and a negative advantage will increase the objective function if the action becomes less likely --- i.e., \(\pi_{\theta}(a|s)\) decreases \cite{SpinningUp2018}. The method we use to calculate advantages is generalised advantage estimation (GAE) \cite{schulman2018highdimensional}.
+A positive advantage will increase the objective function if the action becomes more likely --- i.e., \(\pi_{\theta}(a|s)\) increases --- and a negative advantage will increase the objective function if the action becomes less likely --- i.e., \(\pi_{\theta}(a|s)\) decreases \cite{SpinningUp2018}. 
 
 \subsubsection{Generalised advantage estimation (GAE)}
-Advantage estimates are calculated for the $T$ steps before an update, where $t = 0, 1, \dots, T$, by the following equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t-1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_t+1) - V(S_t)$.
+To calculate the advantage estimates in our objective function, we use generalised advantage estimation (GAE) \cite{schulman2018highdimensional}. To get the estimate $\hat{A}_t$ of $A^{\pi_{\theta_k}}$ at time step $t$, where $t = 0, 1, \dots, T$ are the steps leading up to a policy update, we use the following equation: $$\hat{A}_t = \delta_t + (\gamma\lambda)\delta_{t+1} + \dots + \dots + (\gamma\lambda)^{T-t-1}\delta_{T-1},$$ where $\delta_t = r_t + \gamma V(s_{t+1}) - V(S_t)$, $r_t$ is the immediate reward at time step $t$, $\gamma$ the discount value we need to choose, $\lambda$ the GAE parameter we also need to choose, and $V$ is the most recent estimate of the value function. 
 
-\subsubsection{Pseudocode}
-When combined, the resulting pseudocode of our implementation is as follows:
+\subsubsection{Stochastic gradient descent (SGD)}
+As shown, to use GAE and hence perform the policy update, experience must be collected for $T$ steps. Our algorithm does this by playing the game and following the current policy. The result is a \emph{batch} of experience where each item in the batch is a tuple of information representing the step. Each tuple consists of the following: the state before an action, the action taken, the reward from taking the action, the state after the action, the probability of taking the action given the policy, and whether or not the game is done.
 
-\begin{algorithm}[h]
-    \caption{PPO-Clip pseudocode}
-    \label{alg1}
-\begin{algorithmic}[1]
-    \STATE Initialise policy function with random weights.
-    \STATE Initialise value function with random weights.
-    \FOR{episode $= 0,1,2,...$}
-    \STATE Reset environment.
-    \WHILE{episode is not done}
-    \FOR{$t = 0,1,2,...,T$} 
-    \STATE Run current policy $\pi_k = \pi(\theta_k)$ in environment.
-    \STATE Update batch of experience.
-    \ENDFOR
-    \STATE Compute advantage estimates, based on current value function.
-    \STATE Update the policy by maximising the objective function, via gradient ascent.
-    \STATE Update the value function, via gradient descent. 
-    \ENDWHILE
-    \ENDFOR
-\end{algorithmic}
-\end{algorithm}
+With this batch, we can estimate the policy gradient and update the policy by stochastic gradient ascent (SGA) --- since our goal is to maximise the policy. If the whole batch is used to calculate the gradient estimate, then this is \emph{batch} SGA, and only one update is performed. If the batch is divided into equal-sized portions and each is used to calculate the gradient estimate, then this is \emph{mini-batch} SGA, and the number of updates performed is equal to the number of mini-batches. 
 
-\subsubsection{Policy and value networks}
-As mentioned, we use a neural network architecture for our policy and value functions. The policy network is used to select actions for the agent to take, while the value network is used to evaluate the strength of those actions during learning. 
+We must also update the value function in a similar manner. This time, instead of SGA, we perform stochastic gradient descent (SGD) since we are aiming to minimise the loss of the value function. 
 
-The policy network takes as input the current state and returns a categorical distribution, which is a discrete probability distribution. The number of categories is equal to the number of actions available, and each category has a probability and corresponding action. We must sample from the distribution to obtain an action, such that actions with high probabilities are more likely to be sampled than actions with low probabilities. Necessarily, the probabilities must sum up to 1 overall. 
+In our implementation we perform batch SGA and SGD. Additionally we repeat the update for a specified number of epochs with the aim of speeding up training. 
 
-The separate value network is used to evaluate the actions taken. The value network also takes as input the current state, but has a single output: the estimated value of that state. 
+% At the highest level, the algorithm plays a game until it is done a number of times --- for Breakout, a game is done when all 5 lives have been lost; whereas, for Pong, the game is done after the first player reaches 21 points. Each game played is called an \emph{episode}. During each episode, the algorithm alternates between gathering a batch of experience over a specified number of steps called the horizon, $T$, and updating the policy based on that batch alone. If the episode ends before $T$ steps of experience has been gathered, then the policy is updated with the incomplete batch regardless. Once the learning update has occurred, the batch is discarded.  
 
-\subsubsection{Deep convolutional neural networks (DCNN)}
-The parameters that the policy and value networks share are those of a deep convolutional neural network (DCNN). Using a DCNN allows our algorithm to learn directly from the game's pixels. DCNN often have convolutional layers followed by fully-connected layers. The convolutional layers apply convolutions to an input, often an image, which is when a filter is applied which gives an activation. Applying the filter many times across an input creates a feature map, which can highlight features such as shapes and edges. DCNNs can learn by themselves to detect specific features. Furthermore, they compress useful visual information which are often further processed by fully-connected networks. 
+% \subsubsection{Pseudocode}
+% When combined, the resulting pseudocode of our implementation is as follows:
 
-\subsubsection{Network architecture}
-Our neural network architecture consists of a DCNN connected to two fully connected networks --- one for the policy network, and the other for the value network. The architecture of our DCNN is based on one used by the DQN agent in \cite{Mnih2015}.
+% \begin{algorithm}[h]
+%     \caption{PPO-Clip pseudocode}
+%     \label{alg1}
+% \begin{algorithmic}[1]
+%     \STATE Initialise policy function with random weights.
+%     \STATE Initialise value function with random weights.
+%     \FOR{episode $= 0,1,2,...$}
+%     \STATE Reset environment.
+%     \WHILE{episode is not done}
+%     \FOR{$t = 0,1,2,...,T$} 
+%     \STATE Run current policy $\pi_k = \pi(\theta_k)$ in environment.
+%     \STATE Update batch of experience.
+%     \ENDFOR
+%     \STATE Compute advantage estimates, based on current value function.
+%     \STATE Update the policy by maximising the objective function, via gradient ascent.
+%     \STATE Update the value function, via gradient descent. 
+%     \ENDWHILE
+%     \ENDFOR
+% \end{algorithmic}
+% \end{algorithm}
 
-The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frames of dimension 84x84. The second block has kernel 4, stride 2, and has 32 inputs. The third block has kernel size 3, stride 1, and has 64 inputs. 
+\subsubsection{Deep convolutional neural network (DCNN)}
+So that we can learn from pixel inputs, we use a DCNN architecture based on \cite{Mnih2015} to estimate the policy and value function. The policy network takes as input the current state and returns a categorical distribution, which is a discrete probability distribution. The number of categories is equal to the number of actions available, and each category has a probability and corresponding action. We must sample from the distribution to obtain an action, such that actions with high probabilities are more likely to be sampled than actions with low probabilities. Necessarily, the probabilities must sum up to 1 overall. On the other hand, the value network also takes as input the current state, and outputs the estimated value of that state. 
 
-The fully-connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened output of the convolutional layers, of dimension 3166, and the second block takes as input 512 and has 1 output if it is the value network, or the number of actions if it is the policy network. 
+DCNN have convolutional layers followed by fully-connected layers. The convolutional layers apply convolutions to an input, often an image, which is when a filter is applied which gives an activation. Applying the filter many times across the input creates a feature map, which can highlight features such as shapes and edges. The fully-connected layers further process the flattened output of the convolutional layers by combining information across the filters.
+
+In our architecture, the policy network and value network share convolutional layers and have separated fully-connected layers. The reason for this is because the features identified that are useful to improve the policy should also be useful to improve the value function, or vice versa. The fully-connected layers are there to perform further processing in a manner specific to estimating the policy or value function. 
+
+The DCNN consists of 3 blocks of alternating convolutional layers and ReLU activation functions. The first block has kernel size 8, stride 4, and takes as input a stack of 4 frames of dimension $84 \times 84$. The second block has kernel 4, stride 2, and has 32 inputs. The third block has kernel size 3, stride 1, and has 64 inputs. 
+
+The fully-connected layers consist of 2 blocks of alternating linear layers and ReLU activation functions. The first block takes as input the flattened output of the convolutional layers, of dimension 3166, and the second block takes as input 512. For the policy network, the output of this are logits that are passed through a softmax function to obtain action probabilities. For the value network, the output is the value.
 
 \begin{figure}[h]
     \centering
@@ -201,16 +196,18 @@ The fully-connected layers consist of 2 blocks of alternating linear layers and 
 \end{figure}
 
 \subsection{Implementation issues}
-\subsubsection{Stacking frames}
+\subsubsection{State definition}
 The first implementation issue considers how to define the state to be used as input to the DCNN at each step. Simply using the game state is insufficient. A game state by itself is a singular, static image from which we cannot infer any information about what is moving. Conveying motion to the neural network is important, since it must understand the velocity of the ball and predict its trajectory for the agent to perform successfully. To tackle this issue, we define the state at each step to be a stack of the last 4 game states, or \emph{frames}. The fourth frame is the most recent --- the current game state --- while the first is the game state 3 actions (or steps) earlier. From this, we expect the DCNN to learn filters that detect the changed positions between frames to infer motion, and take actions accordingly.
 
-\subsubsection{Pre-processing frames}
+An adjustment we made to make conveying motion more obvious, which is used in \cite{Mnih2015} is to perform \emph{frame-skipping}. Instead of taking 1 action between each frame, we take 4 of the same actions. This means that the fourth frame is actually 12 actions ahead of the first. 
+
+\subsubsection{Pre-processing}
 The second implementation issue considers how to speed up network training without sacrificing performance. Applying convolutions is computationally expensive, more so the larger the image, and the time spent doing so adds up. The game state is an image of height, width, channel $210 \times 160 \times 3$; however, some of this information can be discarded or compressed. Since colour plays no important role in predicting the movement of the ball, we can convert the image to greyscale and obtain a new image with dimension $210 \times 160$. Similarly, the visual indicators for the score and number of lives left are redundant since we also keep track of these values in the algorithm. We can crop these indicators out, producing a new image with dimension $160 \times 160$. Additionally, if the ball and paddle can both be identified at lower resolutions, then there should be no loss of information, and in theory the performance of the DCNN should be the same. As a result, we down sample the image, which changes the number of pixels, to obtain a new $84 \times 84$ image. 
 
-For Pong, there is an additional step, which is to rotate the image $90^{\circ}$ clockwise. This is so that the orientation of the paddle would be the same as in Breakout. We expect this to have been useful had transfer learning approaches had been implemented for learning between the two games.
+For Pong, there is an additional step, which is to rotate the image $90^{\circ}$ clockwise. This is so that the orientation of the paddle would be the same as in Breakout. We expect this to have been useful had transfer learning approaches been implemented for learning between the two games.
 
 \subsubsection{Huber loss}
-In our implementation, the objective function with which we update the policy has an additional term. We must include a value function error term because we use a neural network architecture which shares parameters as function approximators for our policy and value functions. As the value function error term, we use the Huber loss function. We calculate the loss between batches of $x$ and $y$ by $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i},$$ where $z_i$ is given by the following:
+The third implementation issues consider how to update shared network parameters during an update step. Due to the policy and value networks sharing convolutional layers, we must add an additional term to the objective function which accounts for the value function loss (or error). The additional term we use is the Huber loss function, which calculates the loss between batches of $x$ and $y$ by $$\text{loss}(x, y) = \frac{1}{n} \sum_{i} z_{i},$$ where $z_i$ is given by the following:
 
 \[\begin{aligned}
 z_{i} =
@@ -220,39 +217,27 @@ z_{i} =
 \end{cases}
 \end{aligned}\]
 
-\begin{itemize}
-    
-    \item We tried frame skipping.
-    \item We tried resetting after end of each life. 
-    
-\end{itemize}
+In the implementation, $x$ is the value of the current state, and $y$ the immediate reward plus the discounted value of the next state. This loss must be subtracted from the policy gradient in the objective function, since we are trying to minimise it.
 
+\subsection{Verification and Validation}
+Verification was done on the solution to check that the specification was met. During developmental stages, verification methods consisted of running individual components of the system followed by checking the results from the run. We ran each frame pre-processing step, the convolutional layer, and both fully-connected layers, and verified the outputs were as expected. Although we did not implement verification methods for after the developmental stages, the prior runs ensured that the specification continued to be met once the system was formed. Nonetheless, an improvement would be to implement additional methods, such as to check action probabilities and content of the frame stack during agent-training.
 
+% Were the transfer learning system to have been successfully implemented, verification would also have been done on it. For transfer learning via policy transfer, the verification method would be to check that each network parameter of the newly initialised agent was equal to that of the trained agent. For transfer learning via the generative model, verification methods would consist of conducting tests for each pre-processing step and network layer, as well as during training.
 
-\subsection{Verification}
-(This might be a description of testing rather than verification.)
-
-Verification was done on the reinforcement learning system to check that the specification was met. During developmental stages, verification methods consisted of conducting individual tests to run components of the system, followed by checking the results from the run. We tested each frame pre-processing step (greyscaling, cropping, resizing, and stacking), the convolutional layer, and both fully-connected layers, by checking the outputs were as expected. Although we did not implement verification methods for after the developmental stages, the prior tests ensured that the specification continued to be met once the system was formed. Nonetheless, an improvement would be to implement additional tests, such as to check action probabilities and replay-buffer content during training.
-
-Were the transfer learning system to have been successfully implemented, verification would also have been done on it. For transfer learning via policy transfer, the verification method would be to check that each network parameter of the newly initialised agent was equal to that of the trained agent. For transfer learning via the generative model, verification methods would consist of conducting tests for each pre-processing step and network layer, as well as during training.
-
-\subsection{Validation}
 Validation was done to ensure that the solution would meet the project objectives. Validation methods involved discussing with the project advisor and predicting barriers that could lead to insufficient completion of the solution. This led to the updating of project objectives which were used as guidance for planning. Another validation method was to refer back to the original project proposal, \textit{Reinforcement Learning}, from which this project has evolved. By doing validation, we establish evidence that the solution achieved at least the intended minimum objectives.  
 
 \subsection{Testing}
-Unit testing, integration testing, and system testing were done on the solution.
+Unit testing, integration testing, and system testing were all done on the solution. Unit testing was conducted by breaking up each component of the system into its individual functions and testing them. For example, we tested that the output probabilities of the softmax function should sum to 1. We then conducted integration testing by running functions together. For example, we tested that the output probabilities of the policy network were the same when the input was kept the same. Finally, we conducted system testing by running the system as a whole. For example, we checked that the total reward printed at the end of an episode matched the score that was shown at the end of the corresponding recorded video.
 
-Unit testing was done to test singular components of code to establish if it works correctly. Method, class, test case
-
-\newpage
 \section{Results}
 \subsection{Evaluation method}
 The evaluation method adopted is to produce and analyse the following statistics during agent training: mean episode score, episode score standard deviation, and mean objective loss --- each over the most recent 100 episodes --- as well as total number of time steps and learning iterations. Additionally, we record a video of an episode at regular intervals to directly observe and better understand agent behaviour.
 
 To determine to what extent our implementation of the PPO algorithm learns to successfully play Atari games, we trained agents in the Breakout and Pong environments provided by Gym. By training each agent for a large number of episodes, we can assess whether the agent will converge to a high score and how much luck is involved. We chose to train each agent for 3000 episodes, and evaluated its performance after every 1000th episode, by the evaluation method described. We discovered that our implementation was susceptible to performance loss, even early in the training procedure, and as a result conducted several experiments using different settings in an effort to improve performance.
 
-\subsection{Initial experiments}
-Initial training was done using hyperparameters that were identical, where possible, to those stated in the paper by OpenAI that introduced the PPO algorithm. 
+\subsection{Experimental results}
+\subsubsection{Initial experiments}
+Initial training was done using hyperparameters that were identical, where possible, to those stated in the paper by OpenAI that introduced the PPO algorithm \cite{DBLP:journals/corr/SchulmanWDRK17}. 
 
 \begin{table}[h]
     \caption{PPO hyperparameters used in Atari experiments. $\alpha$ is linearly annealed from 1 to 0 over the course of learning.}
@@ -303,10 +288,10 @@ In one run, we found that performance loss occurred immediately after the first 
 
 In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
 
-\subsection{Horizon experiments}
+\subsubsection{Horizon experiments}
 Thinking that a factor in what is causing our network to converge in local optima is the batch size of the gradient update, we train additional agents with $T = 64$ and $T = 32$. Similar to previous agents, for $T = 64$, our agent converges to a mean score of 2.24 after over 80,000 timesteps and 2,000 learning steps. Videos show that the agent positions itself against the right wall and knows how to initialise the ball; it scores points only when the initialise ball directly lands on the stationary paddle. The agent behaved similarly for $T = 32$, with performance collapse occurring after 265 episodes, where the agent no longer initialises the ball. 
 
-\subsection{Adam stepsize experiments}
+\subsubsection{Adam stepsize experiments}
 
 \newpage
 \section{Evaluation}
