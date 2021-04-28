@@ -233,10 +233,9 @@ Unit testing, integration testing, and system testing were all done on the solut
 \subsection{Evaluation method}
 The evaluation method adopted is to produce and analyse the following statistics during agent training: mean episode score, episode score standard deviation, and mean objective loss --- each over the most recent 100 episodes --- as well as total number of time steps and learning iterations. Additionally, we record a video of an episode at regular intervals to directly observe and better understand agent behaviour.
 
-To determine to what extent our implementation of the PPO algorithm learns to successfully play Atari games, we trained agents in the Breakout and Pong environments provided by Gym. By training each agent for a large number of episodes, we can assess whether the agent will converge to a high score and how much luck is involved. We chose to train each agent for 3000 episodes, and evaluated its performance after every 1000th episode, by the evaluation method described. We discovered that our implementation was susceptible to performance loss, even early in the training procedure, and as a result conducted several experiments using different settings in an effort to improve performance.
+To determine to what extent our implementation of the PPO algorithm learns to successfully play Atari games, we trained agents in the Breakout and Pong environments provided by Gym. By training each agent for a large number of episodes, we can assess whether the agent will converge to a high score and how much luck is involved. We chose to train each agent for 1000 episodes initially, and evaluated its performance after every 100th episode, by the evaluation method described. If the agent showed signs of converging, we continued training the agent. We discovered that our implementation was susceptible to performance loss, even early in training, and as a result conducted several experiments using different settings in an effort to improve performance.
 
-\subsection{Experimental results}
-\subsubsection{Initial experiments}
+\subsection{Experiments}
 Initial training was done using hyperparameters that were identical, where possible, to those stated in the paper by OpenAI that introduced the PPO algorithm \cite{DBLP:journals/corr/SchulmanWDRK17}. 
 
 \begin{table}[h]
@@ -286,9 +285,11 @@ Initial training was done using hyperparameters that were identical, where possi
 
 In one run, we found that performance loss occurred immediately after the first training update. Episode 1 had a score of 1, whereas every episode thereafter had a score of 0. Video inspection revealed that the agent moved randomly in the first episode, and in the rest it was stationary. The only action the agent was taking was to initialise the ball. Looking at the mean values of the objective loss, we noticed that the loss peaked in the first episode. This led us to believe that this high loss value caused the training update to push the action probabilities away from the `move left' and `move right' actions so much that it was improbable for them to be sampled any time soon.
 
-In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
+% In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
 
 \subsubsection{Horizon experiments}
+First we conducted experiments for different values of the horizon ($T$). We trained for $T=64$ and $T=32$. 
+
 Thinking that a factor in what is causing our network to converge in local optima is the batch size of the gradient update, we train additional agents with $T = 64$ and $T = 32$. Similar to previous agents, for $T = 64$, our agent converges to a mean score of 2.24 after over 80,000 timesteps and 2,000 learning steps. Videos show that the agent positions itself against the right wall and knows how to initialise the ball; it scores points only when the initialise ball directly lands on the stationary paddle. The agent behaved similarly for $T = 32$, with performance collapse occurring after 265 episodes, where the agent no longer initialises the ball. 
 
 \subsubsection{Adam stepsize experiments}
@@ -305,7 +306,7 @@ save memory
 Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
 
 Huber loss makes system less sensitive to outliers
-This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}.
+This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{DBLP:journals/corr/Girshick15}.
 
 This is due to its relative simplicity compared to other policy gradient methods and its strong performance on Atari games.
 
