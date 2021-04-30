@@ -10,6 +10,7 @@
 % \usepackage{subfig}
 \usepackage{subcaption}
 \usepackage{amsmath}
+\usepackage{tabularx}
 \graphicspath{ {./images/} }
 
 \citationmode{abbr}
@@ -85,7 +86,6 @@ The advanced objectives were to develop a novel architecture and workflow for pr
 
 \newpage
 \section{Related work}
-\label{section:related-work}
 Many academic papers have been published introducing RL algorithms that learn to succeed in an environment. For these algorithms, learning to succeed is framed as finding the policy which maximises expected return --- this is the goal in RL. Most existing solutions find this optimal policy by either value-based methods or policy gradient methods. 
 
 \subsection{Value-based methods}
@@ -93,7 +93,7 @@ Value-based methods aim to build value functions which help define a policy. The
 
 The goal of Q-learning is to learn an optimal Q-value function, $Q^*(s,a)$, which is the same as $Q^{\pi}(s,a)$ except the policy is \emph{optimal}. Given $Q^*(s,a)$, the optimal policy is to always select the action with the highest Q-value at each state. The basic version of Q-learning does this by keeping a lookup table of Q-values with one entry for every state-action pair \cite{DBLP:journals/corr/abs-1811-12560}. These Q-values can be found optimally by solving the Bellman equation \cite{R-352-PR} $$Q^*(s,a) = \underset{s'\sim P}{\mathbb{E}} \left[{r(s,a) + \gamma \underset{a'}{\max} Q^*(s',a')}\right]$$ which recursively relates each state-action pair. For some environments, however, solving the Bellman equation is infeasible. Instead, the optimal Q-values must be estimated.
 
-Fitted Q-learning \cite{10.5555/2998828.2998976} estimates the optimal Q-values based on experience gathered so far, and iteratively updates them. Neural fitted Q-learning (NFQ) \cite{10.1007/11564096_32} improves on this by parametrising the Q-values with a neural network, which computes more efficiently. The Q-network takes as input a state and outputs different Q-values for each of the possible actions. The breakthrough deep Q-network (DQN) algorithm \cite{Mnih2015} uses a deep convolutional neural network (DCNN) architecture to take pixels as input to learn to play Atari games. More recent approaches made improvements to DQN: duelling DQN \cite{DBLP:journals/corr/WangFL15} helps generalise learning across actions; double DQN \cite{DBLP:journals/corr/HasseltGS15} reduces overestimating action values; and, rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} combines these improvements to achieve state-of-the-art performance.
+Fitted Q-learning \cite{10.5555/2998828.2998976} estimates the optimal Q-values based on experience gathered so far, and iteratively updates them. Neural fitted Q-learning (NFQ) \cite{10.1007/11564096_32} improves on this by parametrising the Q-values with a neural network, which computes more efficiently. The Q-network takes as input a state and outputs different Q-values for each of the possible actions. The breakthrough deep Q-network (DQN) algorithm \cite{Mnih2015} uses a deep convolutional neural network (DCNN) architecture to take pixels as input to learn to play Atari games. More recent approaches made improvements to DQN: duelling DQN \cite{DBLP:journals/corr/WangFL15} helps generalise learning across actions; double DQN \cite{DBLP:journals/corr/HasseltGS15} reduces overestimating action values; and, rainbow DQN \cite{DBLP:journals/corr/abs-1710-02298} combines these improvements to achieve even better performance.
 
 Despite these improvements, there remain limitations with value-based methods. Primarily, these methods poorly handle environments with large action spaces. In the Atari game Gravitar which has 18 actions, a DQN agent achieves a mean score of 306.7 compared to 2672 achieved by a human \cite{Mnih2015}. Another key limitation is that these methods cannot explicitly learn stochastic policies, while policy gradient methods can.
 
@@ -106,11 +106,6 @@ Actor-critic algorithms \cite{Konda2000} build on the discovery that the policy 
 
 Most of the limitations of policy gradient methods concern performance collapse --- i.e., when the algorithm ceases to learn. This occurs when the policy, or objective function, gets stuck at a local optimum. This happens because the policy becomes less random after lots of training, due to exploiting rewards that have already been found. Nonetheless, policy gradient methods are methods of learning that more closely resemble learning in nature than value-based methods.
 
-\subsection{Transfer learning approaches}
-
-\subsection{Generative models}
-
-\newpage
 \section{Solution}
 \subsection{Specification}
 To develop a solution that lets an RL algorithm learn to play Atari games successfully, the solution must satisfy certain requirements. First, the solution should be able to load an Atari game and reset the environment and agent to an initial \emph{game state}. Second, to make designing an algorithm to control the agent and interact with the environment easier, the solution should change the game state only when the agent takes an action. We call this a \emph{step}. (At time step 0, the game state is the initial game state; and, at time step 1, the game state is that after the first action, and so on.) Third, each step should return the new game state alongside additional information, such as the reward from taking the action, whether the game has finished, and the number of lives the agent has left. Fourth, the game states and additional information should be able to be collected, pre-processed, and used by a reinforcement learning algorithm to control the agent and iteratively improve its behaviour.
@@ -233,11 +228,10 @@ Unit testing, integration testing, and system testing were all done on the solut
 \subsection{Evaluation method}
 The evaluation method adopted is to produce and analyse the following statistics during agent training: mean episode score, episode score standard deviation, and mean objective loss --- each over the most recent 100 episodes --- as well as total number of time steps and learning iterations. Additionally, we record a video of an episode at regular intervals to directly observe and better understand agent behaviour.
 
-To determine to what extent our implementation of the PPO algorithm learns to successfully play Atari games, we trained agents in the Breakout and Pong environments provided by Gym. By training each agent for a large number of episodes, we can assess whether the agent will converge to a high score and how much luck is involved. We chose to train each agent for 3000 episodes, and evaluated its performance after every 1000th episode, by the evaluation method described. We discovered that our implementation was susceptible to performance loss, even early in the training procedure, and as a result conducted several experiments using different settings in an effort to improve performance.
+To determine to what extent our implementation of the PPO algorithm learns to successfully play Atari games, we trained agents in the Breakout and Pong environments provided by Gym. By training each agent for a large number of episodes, we can assess whether the agent will converge to a high score and how much luck is involved. We chose to train each agent for 1000 episodes initially, and evaluated its performance after every 100th episode by the evaluation method described. If the agent showed signs of converging, we continued training the agent. We discovered that our implementation was susceptible to performance loss, even early in training, and as a result conducted several experiments using different settings in an effort to improve performance.
 
-\subsection{Experimental results}
-\subsubsection{Initial experiments}
-Initial training was done using hyperparameters that were identical, where possible, to those stated in the paper by OpenAI that introduced the PPO algorithm \cite{DBLP:journals/corr/SchulmanWDRK17}. 
+\subsection{Experimental settings}
+We started by using hyperparameters that were identical, where possible, to those stated in the paper by OpenAI that introduced the PPO algorithm \cite{DBLP:journals/corr/SchulmanWDRK17}. 
 
 \begin{table}[h]
     \caption{PPO hyperparameters used in Atari experiments. $\alpha$ is linearly annealed from 1 to 0 over the course of learning.}
@@ -245,11 +239,11 @@ Initial training was done using hyperparameters that were identical, where possi
     \begin{subtable}[h]{0.45\textwidth}
         \centering
         \caption{OpenAI's hyperparameters.}
-        \label{tab:week1}    
+        \label{tab:openai-param}    
         \begin{tabular}{ l|l } 
             Hyperparameter                & Value \\
             \hline 
-            Horizon (T)                   & $128$ \\ 
+            Horizon ($T$)                   & $128$ \\ 
             Adam stepsize                 & $\mathbf{2.5 \times 10^{-4} \times \alpha}$ \\
             Num. epochs                   & $3$ \\
             Minibatch size                & $\mathbf{32 \times 8}$ \\
@@ -266,11 +260,11 @@ Initial training was done using hyperparameters that were identical, where possi
     \begin{subtable}[h]{0.45\textwidth}
         \centering
         \caption{Our hyperparameters.}
-        \label{tab:week2}
+        \label{tab:our-param}
         \begin{tabular}{ l|l } 
             Hyperparameter                & Value \\
             \hline 
-            Horizon (T)                   & $128$ \\ 
+            Horizon ($T$)                   & $128$ \\ 
             Adam stepsize                 & $\mathbf{2.5 \times 10^{-4}}$ \\
             Num. epochs                   & $3$ \\
             Minibatch size                & \textbf{---} \\
@@ -284,48 +278,65 @@ Initial training was done using hyperparameters that were identical, where possi
      \end{subtable}
 \end{table}
 
-In one run, we found that performance loss occurred immediately after the first training update. Episode 1 had a score of 1, whereas every episode thereafter had a score of 0. Video inspection revealed that the agent moved randomly in the first episode, and in the rest it was stationary. The only action the agent was taking was to initialise the ball. Looking at the mean values of the objective loss, we noticed that the loss peaked in the first episode. This led us to believe that this high loss value caused the training update to push the action probabilities away from the `move left' and `move right' actions so much that it was improbable for them to be sampled any time soon.
+To address the concern about reproducing results, we take steps to control sources of randomness that will cause our agent to learn differently across different runs. The steps we take are to seed the random number generation (RNG) for each module we use. We seed `torch', `random', `numpy', and the environment and action space for `gym'. The value of the seed we use is 742.
 
-In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
+\subsubsection{Experiments}
+First, we trained an agent using the hyperparameters stated in Table \ref{tab:our-param}. The result was that the agent stopped learning within the first 10 episodes of training. Looking at the statistics, we see that from episode 4 the final score of each episode was 0. Additionally, we see that from episode 7 the mean and standard deviation of the loss at each episode was also 0, which means that the policy is not improving. However, each episode lasted exactly 2500 steps. Looking at the latest video, we observe that the agent immediately moves the paddle to the left wall, without firing the ball, and remains there until the episode is forcibly terminated. We confirm this by loading the saved model and inspecting a state input and the action-probabilities produced by the policy network: there is a 0.99 probability of selecting the `LEFT' action. We conclude that this performance collapse was due to the policy becoming trapped in a local optimum due to initial conditions causing lack of exploration early on in training. 
 
-\subsubsection{Horizon experiments}
-Thinking that a factor in what is causing our network to converge in local optima is the batch size of the gradient update, we train additional agents with $T = 64$ and $T = 32$. Similar to previous agents, for $T = 64$, our agent converges to a mean score of 2.24 after over 80,000 timesteps and 2,000 learning steps. Videos show that the agent positions itself against the right wall and knows how to initialise the ball; it scores points only when the initialise ball directly lands on the stationary paddle. The agent behaved similarly for $T = 32$, with performance collapse occurring after 265 episodes, where the agent no longer initialises the ball. 
+\begin{figure}[h]
+    \centering
+    \subfloat[Input state.]{\includegraphics[width=0.45\textwidth]{experiment-1.png}}
+    \hfill
+    \subfloat[Output action-probabilities.]{
+        \begin{tabular}{ |c|c|c|c| } 
+            \hline
+            NOOP & FIRE & RIGHT & LEFT \\
+            \hline 
+            0.0001 & 0.0003 & 0.0009 & 0.9985\\ 
+            \hline
+        \end{tabular}
+        }
+    \caption{.}
+\end{figure}
 
-\subsubsection{Adam stepsize experiments}
+Second, we trained using different values for the Adam step-size. The reason for this is to assess the hypothesis that smaller gradient updates might prevent performance collapse, since the policy may be less likely to get trapped in a local optimum. For step-size $1.5 \times 10^{-4}$, the result was that performance collapse occurred by episode 3, which is even earlier than before. And, for step-size $0.5 \times 10^{-4}$, the result was that performance collapse occurred by episode 29, which is better than before. This time, from looking at the latest video of the latter agent, we see that the action probabilities became heavily skewed to the `RIGHT' action. 
 
-\newpage
+Third, we trained using different values for the horizon ($T$). The reason for this is to assess the hypothesis that estimating the policy gradient using smaller batch sizes might prevent performance collapse, since there may be less varied experience. For $T=64$, the result was that the agent achieved a mean score of 2.24 after 1000 episodes (or 80,000 steps and 2,000 updates). However, looking at the statistics, we noted that this mean score was not improving over time even though the mean loss was non-zero. Looking at the latest video, we observed that the agent moves to the right wall and remains there, but knows to fire the ball. The mean score is due to the ball hitting the paddle by chance. Although this policy is better, it shows no sign of improving if we were to train it for longer. For $T=32$, the result was that the agent behaved similarly to $T=64$ to begin with, and then performance collapsed occurred after episode 265 in the same way as it did in the first and second experiments.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{experiment-T.png}
+\end{figure}
+
+Fourth we trained using different values for the number of epochs ($K$). The reason for this is to assess the hypothesis that decreasing the number of updates to the policy might help to prevent performance collapse, since the policy may be less likely to get trapped in a local optimum. For $K=2$, the result was that performance collapse occurred by episode 3. For $K=1$, the result was that the agent scored a high score of 8, had a mean score of 4.10 by episode 610, and performance collapse occurred by episode 630. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{experiment-K.png}
+\end{figure}
+
+Fifth, we trained using a combination of the values that improved performance in the previous experiemnts. These were $K=1$, $T=64$, and adam step-size $0.5 \times 10^{-4}$. We also used $K=1$, $T=32$, and adam step-size $0.5 \times 10^{-4}$. The results were that there performance loss occurred again early on in training. We did K=1, T=32, and adam = 0.5 for seed 742. Performance collapse after 350 episodes.
+
+We tried starting values on seed 426. Agent just learned to stay still. For seed 999, agent moved to right wall.We tried combination of values in fifth for seed 999, no luck.
+
+Finally, we varied teh seed. In another run, we had more success. After 1,000 episodes, with over 100,000 timesteps and 1,300 learning steps, the agent achieved a mean score of 5.31 and a high score of 11. Again, video inspection revealed interesting behaviour: at 1000 timesteps, the agent had learned to alternate between moving to the left and right walls, as this was where the ball travelled to after it was first initialised. However, at 500 timesteps, the behaviour more closely resembled that of moving in the direction of the ball. We believe that the agent overfitted to the initial conditions when episodes are reset --- i.e. the policy gradient is stuck in a local maximum. Upon training the agent further, we observed the agent to start to undo its overfitting behaviour by episode 1,300; however, by episode 1,400, performance had collapsed and the mean score dropped to 0. This time, the action probabilities were heavily weighted towards the 'move right' action. This meant the ball never came into play, and the agent would remain trapped in the episode, which would last over 5 minutes. As a result, training was terminated. 
+
 \section{Evaluation}
-We discuss in this section the suitability of our approach to this project, the strengths and limitations of our algorithm, and the organisation of the project.
-
 \subsection{System strengths} 
-is that it explores by sampling actions according to the latest version of its stochastic policy. The amount of randomness in action selection depends on both initial conditions and the training procedure. Over the course of training, the policy typically becomes progressively less random, as the update rule encourages it to exploit rewards that it has already found. This may cause the policy to get trapped in local optima. Additionally, even seemingly small differences in parameter space can have very large differences in performance --- so a single bad step can collapse the policy performance. This has drastic impacts on the algorithms' sample efficiency.
+The first strength of the system is that it learns a stochastic policy. Policy gradient methods are better than value-based methods. It explores by sampling actions according to the latest version of its stochastic policy. The amount of randomness in action selection depends on both initial conditions and the training procedure. Over the course of training, the policy typically becomes progressively less random, as the update rule encourages it to exploit rewards that it has already found. 
 
-save memory
+The second strength of the system is that it it is fast. It uses CUDA to speed up training and has an efficient architecture. It is memory efficient due to being sample efficient. Talk about architecture. Adam optimisation algorithm \cite{kingma2017adam} can handle sparse gradients on noisy problems.
 
-Finally, back-propagation is performed by the Adam optimisation algorithm \cite{kingma2017adam}, which can handle sparse gradients on noisy problems.
-
-Huber loss makes system less sensitive to outliers
-This is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{girshick2015fast}.
-
-This is due to its relative simplicity compared to other policy gradient methods and its strong performance on Atari games.
-
-discuss ReLU
-
-% The original algorithm by OpenAI takes multiple steps of mini-batch stochastic gradient descent to maximise this objective. Our implementation takes multiple steps of batch stochastic gradient descent.
-
-% PPO's policy is stochastic, meaning that actions are sampled from the most recent policy. To learn which actions are better, the algorithm must \emph{explore} its environment. The ability to explore depends on taking actions that lead to less explored states, however, and how much PPO explores can be affected by how it trains and initial conditions. The more the algorithm trains, the less random its behaviour becomes, as its learning step pushes action probabilities to \emph{exploit} rewards that were found previously. 
-
-PPO is an on-policy algorithm which can be used for environments with either discrete or continuous action spaces. PPO is motivated by the same question as TRPO: how can we take the biggest possible improvement step on a policy using the data we currently have, without stepping so far that we accidentally cause performance collapse? Where TRPO tries to solve this problem with a complex second-order method, PPO is a family of first-order methods that use a few other tricks to keep new policies close to old. There are two primary variants of PPO: PPO-Penalty and PPO-Clip.
+The third strength of the system is that it is simpler than other policy gradient methods. PPO has fewer tricks and is easier to understand. Huber loss is used because it is less sensitive to outliers than mean-squared error loss (squared L2 loss), and in some cases prevents exploding gradients \cite{DBLP:journals/corr/Girshick15}.
 
 \subsection{System limitations}
-The lack of a entropy bonus 
-\begin{itemize}
-    \item The original algorithm anneals the adam step size and clipping parameter which we don't.
-    \item The original algorithm runs 8 agents in parallel. We only did one due to hardware limitations.
-    \item We don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
-    \item We did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective
-\end{itemize}
+The first limitation is that the Adam step size and clipping parameter are not annealed.
 
+The second limitation is that we run a single agent. The original paper runs 8. 
+
+The third limitation is that we don't use early stopping to help prevent new policy being too far from old. Rule is if the mean KL-divergence of the new policy from the old grows beyond a threshold, stop taking gradient steps. The method is susceptible to policies being trapped in local optima.
+
+The fourth limitation is that we did multiple steps of batch SGD rather than mini-batch SGD to maximise the objective. Even seemingly small differences in parameter space can have very large differences in performance --- so a single bad step can collapse the policy performance. This has drastic impacts on the algorithms' sample efficiency.
 
 \subsection{Approach}
 The approach to the project was an ambitious one. The layout of the objectives --- of first developing a RL algorithm, and then investigating TL approaches --- was meant to eliminate the risk of having no solution were TL to have performed poorly. What was overlooked was a situation where it was the RL algorithm that performed poorly, so that TL could not even be considered. Having the intermediate and advanced objectives depend on the minimum objective in this way meant that the solution could not be continually improved over time. This was exacerbated by the fact that the advanced objective proposed the development of an architecture completely different to that of the minimum objective. This layout is akin to a waterfall development approach, whereas an agile approach, with some adjustments to the aims, would have been more appropriate. 
@@ -337,7 +348,6 @@ With this project being the first major piece of individual work that we have un
 
 In planning our work, we discussed with our supervisor to identify the deliverables intended to fulfil the corresponding objectives in the original project proposal. Due to the results of our initial investigations, we revised our deliverables so that we could investigate the state of the art. This was done in consultation with and approved by our supervisor; however, with the outcome of the project, we were not able to extend the state of the art, and would therefore have benefited more by remaining with the original project proposal. 
 
-\newpage
 \section{Conclusions}
 \subsection{Project overview}
 \begin{itemize}
@@ -355,6 +365,5 @@ In planning our work, we discussed with our supervisor to identify the deliverab
     \item The project can be extended by \dots
 \end{itemize}
 
-\newpage
 \bibliography{references}
 \end{document}
